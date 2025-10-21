@@ -1,13 +1,10 @@
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-
 public class StreamletProtocol {
 
-    //list of sockets corresponding to the middleware sockets for broadcasting
-    private List<Socket> sockets = new ArrayList<>();
+    private int num_nodes;
+    private int epoch_duration;
 
-    public StreamletProtocol() {
+    public StreamletProtocol(int duration) {
+        epoch_duration = 2*duration;
 
         for(int i = 0; i < Utils.EPOCHS; i++) {
             /*TODO:
@@ -17,6 +14,10 @@ public class StreamletProtocol {
             *
             * */
         }
+
+    }
+
+    private void URB_broadcast(Message m) {
 
     }
 
