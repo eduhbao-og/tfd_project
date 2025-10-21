@@ -4,6 +4,7 @@ out/
 !**/src/test/**/out/
 .kotlin
 .idea
+tfd_project.iml
 
 ### Eclipse ###
 .apt_generated
