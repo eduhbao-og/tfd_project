@@ -3,7 +3,8 @@ public class StreamletProtocol {
     private int num_nodes;
     private int epoch_duration;
 
-    public StreamletProtocol(int duration) {
+    public StreamletProtocol(int num_nodes, int duration) {
+        this.num_nodes = num_nodes;
         epoch_duration = 2*duration;
 
         for(int i = 0; i < Utils.EPOCHS; i++) {
