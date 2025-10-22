@@ -1,5 +1,7 @@
 public class URBLayer {
 
-    //Middleware
+    public void receive(Message m){
+
+    }
 
 }
