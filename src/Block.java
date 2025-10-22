@@ -1,5 +1,7 @@
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Block {
@@ -8,7 +10,7 @@ public class Block {
     private String hash;
     private int epoch;
     private int length;
-    private Transaction[] transactions;
+    private List<Transaction> transactions = new ArrayList<>();
 
     public Block(String prev_hash, int epoch, int length) {
         generateHash();
@@ -18,7 +20,7 @@ public class Block {
         this.length = length;
     }
 
-    public Block(String prev_hash, int epoch, int length, Transaction[] transactions) {
+    public Block(String prev_hash, int epoch, int length, List<Transaction> transactions) {
         generateHash();
         this.status = Utils.BlockStatus.NORMAL;
         this.prev_hash = prev_hash;
@@ -44,7 +46,7 @@ public class Block {
     }
 
 
-    public Transaction[] getTransactions() {
+    public List<Transaction> getTransactions() {
         return transactions;
     }
 
