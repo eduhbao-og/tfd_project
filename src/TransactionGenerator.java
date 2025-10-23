@@ -12,9 +12,9 @@ public class TransactionGenerator {
         this.num_nodes = num_nodes;
     }
 
-    public List<Transaction> getTransactions() {
+    public List<Transaction> getTransactions(int num_transactions) {
         List<Transaction> transactions = new ArrayList<>();
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < num_transactions; i++) {
             int receiver = -1;
             while(receiver < 0 || receiver == node_id) {
                 receiver = (int) (Math.random() * num_nodes);
