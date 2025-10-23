@@ -43,11 +43,26 @@ public class StreamletProtocol {
                 URB_broadcast(new Message(Utils.MessageType.PROPOSE, new Block(previous_block.getHash(),
                         i, previous_block.getLength()), node_id));
             }
+
         }
     }
 
     private void URB_broadcast(Message m) {
 
+    }
+
+    private void URB_deliver(Message m) {
+        switch (m.getType()) {
+            case PROPOSE -> {
+                // logic for deciding if the proposed block is voted or not
+            }
+            case VOTE -> {
+                // add to vote counter to notarize block
+            }
+            case ECHO -> {
+                // logic for message echo
+            }
+        }
     }
 
     public int getLeader_id() {
