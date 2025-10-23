@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -20,6 +21,10 @@ public class Blockchain {
                 return b;
         }
         throw new NoSuchElementException("Block with length " + length + " doesn't exist.");
+    }
+
+    public Block getLastBlock() {
+        return chain.getLast();
     }
 
     public Block getBlock(String hash) {

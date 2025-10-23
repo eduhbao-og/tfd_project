@@ -1,25 +1,48 @@
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class StreamletProtocol {
 
     private int num_nodes;
     private int epoch_duration;
-    private int id;
+    private int node_id;
     private TransactionGenerator tg;
+    private Blockchain blockchain = new Blockchain();
+    private int leader_id;
+    private long seed;
 
-    public StreamletProtocol(int num_nodes, int duration, int id) {
-        tg = new TransactionGenerator(id, num_nodes);
+    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed) {
+        tg = new TransactionGenerator(node_id, num_nodes);
+        this.node_id = node_id;
         this.num_nodes = num_nodes;
-        epoch_duration = 2*duration;
+        this.seed = seed;
+        epoch_duration = 2 * duration;
         start();
     }
 
+    private void selectLeader() {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] seedBytes = ByteBuffer.allocate(Long.BYTES).putLong(seed).array();
+            byte[] hashBytes = digest.digest(seedBytes);
+            int hashInt = ByteBuffer.wrap(hashBytes).getInt();
+            hashInt = Math.abs(hashInt);
+            leader_id = hashInt % num_nodes;
+            seed++;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void start() {
-        for(int i = 0; i < Utils.EPOCHS; i++) {
-            /*TODO:
-             *
-             * - epoch loop logic
-             * - using a hash function, decide which node is the next leader
-             *
-             * */
+        for (int i = 0; i < Utils.EPOCHS; i++) {
+            selectLeader();
+            if(leader_id == node_id) {
+                Block previous_block = blockchain.getLastBlock();
+                URB_broadcast(new Message(Utils.MessageType.PROPOSE, new Block(previous_block.getHash(),
+                        i, previous_block.getLength()), node_id));
+            }
         }
     }
 
@@ -27,4 +50,7 @@ public class StreamletProtocol {
 
     }
 
+    public int getLeader_id() {
+        return leader_id;
+    }
 }
