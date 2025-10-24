@@ -27,7 +27,7 @@ public class Blockchain {
         Block bestBlock = chain.getLast();
         int numNotarized = 0;
         for (Block b : chain.reversed()) {
-            int count = numberOfNotarized(b);
+            int count = numberOfNotarized(getBlockChain(b));
             if (count > numNotarized) {
                 numNotarized = count;
                 bestBlock = b;
@@ -36,15 +36,28 @@ public class Blockchain {
         return bestBlock;
     }
 
-    private int numberOfNotarized(Block block) {
+    private int numberOfNotarized(List<Block> blockchain) {
         int count = 0;
-        List<Block> blockChain = getBlockChain(block);
-        for(Block b : blockChain) {
+        for(Block b : blockchain) {
             if (b.getStatus() == Utils.BlockStatus.NOTARIZED || b.getStatus() == Utils.BlockStatus.FINALIZED) {
                 count++;
             }
         }
         return count;
+    }
+
+    public List<Block> getLongestNotarizedChain() {
+        List<Block> longest = new ArrayList<>();
+        int numNotarized = 0;
+        for (Block b : chain.reversed()) {
+            List<Block> current = getBlockChain(b);
+            int count = numberOfNotarized(current);
+            if (count > numNotarized) {
+                numNotarized = count;
+                longest = current;
+            }
+        }
+        return longest;
     }
 
     public Block getBlock(String hash) {
