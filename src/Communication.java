@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
+
 public class Communication {
 
     private List<ServerSocket> serverSockets;
@@ -14,31 +16,34 @@ public class Communication {
     private List<ObjectOutputStream> outputs ;
     private URBLayer urb;
 
-    public Communication(List<InetAddress> ips , List<Integer> ports, URBLayer urb){
+    public Communication(List<InetAddress> ips , List<Integer> ports, int port, URBLayer urb){
         this.urb = urb;
         this.serverSockets = new ArrayList<>(ips.size());
         this.sockets = new ArrayList<>(ips.size());
         outputs = new ArrayList<>(ips.size());
         urb.setCommunication(this);
 
-        for(int i = 0; i != ips.size(); i++){
+        for(int i = 0; i < ips.size(); i++){
             try {
-                sockets.set(i, new Socket(ips.get(i).getHostAddress(),ports.get(i)));
-                outputs.set(i, new ObjectOutputStream(sockets.get(i).getOutputStream()));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        for(int i = 0; i != serverSockets.size(); i++){
-            try {
-                serverSockets.set(i, new ServerSocket(i));
+                serverSockets.add(new ServerSocket(ports.get(i)));
                 (new Server(serverSockets.get(i), urb)).start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
+        for(int i = 0; i < ips.size(); i++){
+            while (true){
+                try {
+                    System.out.println(ips.get(i).getHostAddress() + " port: " + port);
+                    sockets.add(new Socket(ips.get(i).getHostAddress(),port));
+                    outputs.add(new ObjectOutputStream(sockets.get(i).getOutputStream()));
+                    break;
+                } catch (IOException e) {
+                    continue;
+                }
+            }
+        }
     }
 
     public void broadcast(Message m){
@@ -59,6 +64,7 @@ public class Communication {
 
         public Server(ServerSocket ss, URBLayer urb){
             this.ss = ss;
+            System.out.println("PORTA BARALHOOOOO!!!!" + ss.getLocalPort());
             this.urb = urb;
         }
 
@@ -81,6 +87,7 @@ public class Communication {
                     Object message = in.readObject();
                     if (message instanceof Message) {
                         urb.deliver((Message) message);
+                        System.out.println("message received: " + message);
                     }
                 }
             }catch (ClassNotFoundException | IOException e){
