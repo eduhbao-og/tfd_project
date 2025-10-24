@@ -15,6 +15,14 @@ public class URBLayer {
         communication = new Communication(ips, ports, this);
     }
 
+    public void setCommunication(Communication communication){
+        this.communication = communication;
+    }
+
+    public void broadcast(Message m){
+        communication.broadcast(m);
+    }
+
     public void receive(Message m){
         if(isFirst(m)){
             communication.broadcast(m);
