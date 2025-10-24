@@ -20,6 +20,7 @@ public class StreamletProtocol {
         this.num_nodes = num_nodes;
         this.seed = seed;
         epoch_duration = 2 * duration;
+        urb.setStreamlet(this);
         start();
     }
 

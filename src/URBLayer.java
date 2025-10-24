@@ -17,7 +17,7 @@ public class URBLayer {
         this.communication = communication;
     }
 
-    public void setCommunication(StreamletProtocol streamlet){
+    public void setStreamlet(StreamletProtocol streamlet){
         this.streamlet = streamlet;
     }
 

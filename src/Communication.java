@@ -19,6 +19,7 @@ public class Communication {
         this.serverSockets = new ArrayList<>(ips.size());
         this.sockets = new ArrayList<>(ips.size());
         outputs = new ArrayList<>(ips.size());
+        urb.setCommunication(this);
 
         for(int i = 0; i != ips.size(); i++){
             try {
