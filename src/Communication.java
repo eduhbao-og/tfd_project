@@ -1,30 +1,28 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Communication {
 
-    private int id;
     private List<ServerSocket> serverSockets = new ArrayList<ServerSocket>();
     private List<Socket> sockets = new ArrayList<>();
     private List<ObjectOutputStream> outputs ;
     private URBLayer urb;
 
-    public Communication(List<ServerSocket> serverSockets, List<Socket> sockets, URBLayer urb){
-        this.serverSockets = serverSockets;
-        this.sockets = sockets;
-        new ArrayList<ObjectOutputStream>(sockets.size());
+    public Communication(List<InetAddress> ips , List<Integer> ports, URBLayer urb){
+        this.serverSockets = new ArrayList<ServerSocket>(ips.size());
+        this.sockets = new ArrayList<Socket>(ips.size());
+        outputs = new ArrayList<ObjectOutputStream>(ips.size());
+        this.urb = urb;
 
-        for(int i = 0; i != sockets.size(); i++){
+        for(int i = 0; i != ips.size(); i++){
             try {
+                sockets.set(i, new Socket(ips.get(i).getHostAddress(),ports.get(i)));
                 outputs.set(i, new ObjectOutputStream(sockets.get(i).getOutputStream()));
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -32,12 +30,17 @@ public class Communication {
         }
 
         for(int i = 0; i != serverSockets.size(); i++){
-            (new Server(serverSockets.get(i), urb)).start();
+            try {
+                serverSockets.set(i, new ServerSocket(i));
+                (new Server(serverSockets.get(i), urb)).start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
     }
 
-    public void send(Message m){
+    public void broadcast(Message m){
         for (ObjectOutputStream o : outputs){
             try {
                 o.writeObject(m);
