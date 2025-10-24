@@ -12,24 +12,16 @@ public class Block {
     private int length;
     private List<Transaction> transactions = new ArrayList<>();
 
-    public Block(String prev_hash, int epoch, int length) {
-        generateHash();
-        this.status = Utils.BlockStatus.NORMAL;
+    public Block(Utils.BlockStatus status, String prev_hash, String hash, int epoch, int length, List<Transaction> transactions) {
+        this.status = status;
         this.prev_hash = prev_hash;
-        this.epoch = epoch;
-        this.length = length;
-    }
-
-    public Block(String prev_hash, int epoch, int length, List<Transaction> transactions) {
-        generateHash();
-        this.status = Utils.BlockStatus.NORMAL;
-        this.prev_hash = prev_hash;
+        this.hash = hash;
         this.epoch = epoch;
         this.length = length;
         this.transactions = transactions;
     }
 
-    private void generateHash() {
+    private static String generateHash() {
         byte[] array = new byte[5];
         new Random().nextBytes(array);
         try {
@@ -39,7 +31,7 @@ public class Block {
             for (byte b : hashBytes) {
                 sb.append(String.format("%02x", b));
             }
-            hash = sb.toString();
+            return sb.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -72,5 +64,13 @@ public class Block {
 
     public void setStatus(Utils.BlockStatus status) {
         this.status = status;
+    }
+
+    public static Block createGenesisBlock() {
+        return new Block(Utils.BlockStatus.NOTARIZED, "0", "0", 0, 0, new ArrayList<>());
+    }
+
+    public static Block createBlock(String prev_hash, int epoch, int length, List<Transaction> transactions) {
+        return new Block(Utils.BlockStatus.PROPOSED, prev_hash, generateHash(), epoch, length, transactions);
     }
 }

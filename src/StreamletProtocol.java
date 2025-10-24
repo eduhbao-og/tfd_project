@@ -1,6 +1,7 @@
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class StreamletProtocol {
 
@@ -15,7 +16,7 @@ public class StreamletProtocol {
 
     public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb) {
         this.urb = urb;
-        tg = new TransactionGenerator(node_id, num_nodes);
+        tg = new TransactionGenerator(num_nodes);
         this.node_id = node_id;
         this.num_nodes = num_nodes;
         this.seed = seed;
@@ -42,9 +43,10 @@ public class StreamletProtocol {
         for (int i = 0; i < Utils.EPOCHS; i++) {
             selectLeader();
             if(leader_id == node_id) {
-                Block previous_block = blockchain.getLastBlock();
-                URB_broadcast(new Message(Utils.MessageType.PROPOSE, new Block(previous_block.getHash(),
-                        i, previous_block.getLength()), node_id));
+                Block previous_block = blockchain.getBestChainBlock();
+                List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
+                transactions.addAll(tg.getTransactions(num_nodes));
+                URB_broadcast(new Message(Utils.MessageType.PROPOSE, Block.createBlock(previous_block.getHash(), i, previous_block.getLength() + 1, transactions), node_id));
             }
             //TODO
         }

@@ -8,7 +8,7 @@ public class Blockchain {
     List<Block> chain = new ArrayList<>();
 
     public Blockchain() {
-        chain.add(new Block("0", 0, 0));
+        chain.add(Block.createGenesisBlock());
     }
 
     public void addBlock(Block b) {
@@ -16,30 +16,73 @@ public class Blockchain {
     }
 
     public Block getBlock(int length) {
-        for(Block b : chain) {
-            if(b.getLength() == length)
+        for (Block b : chain) {
+            if (b.getLength() == length)
                 return b;
         }
         throw new NoSuchElementException("Block with length " + length + " doesn't exist.");
     }
 
-    public Block getLastBlock() {
-        return chain.getLast();
+    public Block getBestChainBlock() {
+        Block bestBlock = chain.getLast();
+        int numNotarized = 0;
+        for (Block b : chain.reversed()) {
+            int count = numberOfNotarized(b);
+            if (count > numNotarized) {
+                numNotarized = count;
+                bestBlock = b;
+            }
+        }
+        return bestBlock;
+    }
+
+    private int numberOfNotarized(Block block) {
+        int count = 0;
+        List<Block> blockChain = getBlockChain(block);
+        for(Block b : blockChain) {
+            if (b.getStatus() == Utils.BlockStatus.NOTARIZED || b.getStatus() == Utils.BlockStatus.FINALIZED) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public Block getBlock(String hash) {
-        for(Block b : chain) {
-            if(b.getHash().equals(hash))
+        for (Block b : chain) {
+            if (b.getHash().equals(hash))
                 return b;
         }
         throw new NoSuchElementException("Block with hash \"" + hash + "\" doesn't exist.");
     }
 
     public void setBlockStatus(int length, Utils.BlockStatus status) {
-        for(Block b : chain) {
-            if(b.getLength() == length)
+        for (Block b : chain) {
+            if (b.getLength() == length)
                 b.setStatus(status);
         }
     }
 
+    public List<Block> getBlockChain(Block b) {
+        List<Block> chain = new ArrayList<>();
+        Block current = b;
+        while(!current.getHash().equals("0")) {
+            chain.add(current);
+            current = getBlock(current.getPrevHash());
+        }
+        chain.add(current);
+        return chain.reversed();
+    }
+
+    // returns the previous unconfirmed transactions, as in, the transactions from non-final blocks
+    public List<Transaction> getPreviousTransactions(Block previousBlock) {
+        List<Transaction> transactions = new ArrayList<>(previousBlock.getTransactions());
+        List<Block> blockchain = getBlockChain(previousBlock).reversed();
+        for(Block b : blockchain) {
+            if (b.getStatus() == Utils.BlockStatus.FINALIZED) {
+                transactions.removeAll(b.getTransactions());
+                break;
+            }
+        }
+        return transactions;
+    }
 }
