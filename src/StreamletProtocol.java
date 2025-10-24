@@ -9,10 +9,12 @@ public class StreamletProtocol {
     private int node_id;
     private TransactionGenerator tg;
     private Blockchain blockchain = new Blockchain();
+    private URBLayer urb;
     private int leader_id;
     private long seed;
 
-    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed) {
+    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb) {
+        this.urb = urb;
         tg = new TransactionGenerator(node_id, num_nodes);
         this.node_id = node_id;
         this.num_nodes = num_nodes;

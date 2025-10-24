@@ -8,15 +8,19 @@ import java.util.List;
 public class URBLayer {
     private List<ObjectOutputStream> outputs ;
     private Communication communication;
+    private StreamletProtocol streamlet;
     private List<Message> messages;
 
     public URBLayer(List<InetAddress> ips, List<Integer> ports){
         messages = new ArrayList<Message>();
-        communication = new Communication(ips, ports, this);
     }
 
     public void setCommunication(Communication communication){
         this.communication = communication;
+    }
+
+    public void setCommunication(StreamletProtocol streamlet){
+        this.streamlet = streamlet;
     }
 
     public void broadcast(Message m){

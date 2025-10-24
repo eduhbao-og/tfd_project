@@ -15,10 +15,10 @@ public class Communication {
     private URBLayer urb;
 
     public Communication(List<InetAddress> ips , List<Integer> ports, URBLayer urb){
+        this.urb = urb;
         this.serverSockets = new ArrayList<ServerSocket>(ips.size());
         this.sockets = new ArrayList<Socket>(ips.size());
         outputs = new ArrayList<ObjectOutputStream>(ips.size());
-        this.urb = urb;
 
         for(int i = 0; i != ips.size(); i++){
             try {
