@@ -26,8 +26,16 @@ public class URBLayer {
     }
 
     public void deliver(Message m){
+        if (m.getType() == Utils.MessageType.ECHO){
+            Message mes = (Message) m.getContent();
+            if(isFirst(mes)){
+                communication.broadcast(new Message(Utils.MessageType.ECHO, mes, streamlet.getNode_id()));
+                streamlet.URB_deliver(mes);
+            }
+            return;
+        }
         if(isFirst(m)){
-            communication.broadcast(m);
+            communication.broadcast(new Message(Utils.MessageType.ECHO, m, streamlet.getNode_id()));
             streamlet.URB_deliver(m);
         }
     }
