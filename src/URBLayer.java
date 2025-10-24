@@ -1,7 +1,5 @@
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,16 +25,17 @@ public class URBLayer {
         communication.broadcast(m);
     }
 
-    public void receive(Message m){
+    public void deliver(Message m){
         if(isFirst(m)){
             communication.broadcast(m);
-            //streamlet deliver
+            streamlet.URB_deliver(m);
         }
     }
 
     private boolean isFirst(Message m){
-        if (messages.contains(m))
+        if (messages.contains(m)) {
             return true;
+        }
         messages.add(m);
         return false;
     }

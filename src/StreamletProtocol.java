@@ -45,15 +45,15 @@ public class StreamletProtocol {
                 URB_broadcast(new Message(Utils.MessageType.PROPOSE, new Block(previous_block.getHash(),
                         i, previous_block.getLength()), node_id));
             }
-
+            //TODO
         }
     }
 
     private void URB_broadcast(Message m) {
-
+        urb.broadcast(m);
     }
 
-    private void URB_deliver(Message m) {
+    public void URB_deliver(Message m) {
         switch (m.getType()) {
             case PROPOSE -> {
                 // logic for deciding if the proposed block is voted or not

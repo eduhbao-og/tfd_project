@@ -9,16 +9,16 @@ import java.util.List;
 
 public class Communication {
 
-    private List<ServerSocket> serverSockets = new ArrayList<ServerSocket>();
-    private List<Socket> sockets = new ArrayList<>();
+    private List<ServerSocket> serverSockets;
+    private List<Socket> sockets;
     private List<ObjectOutputStream> outputs ;
     private URBLayer urb;
 
     public Communication(List<InetAddress> ips , List<Integer> ports, URBLayer urb){
         this.urb = urb;
-        this.serverSockets = new ArrayList<ServerSocket>(ips.size());
-        this.sockets = new ArrayList<Socket>(ips.size());
-        outputs = new ArrayList<ObjectOutputStream>(ips.size());
+        this.serverSockets = new ArrayList<>(ips.size());
+        this.sockets = new ArrayList<>(ips.size());
+        outputs = new ArrayList<>(ips.size());
 
         for(int i = 0; i != ips.size(); i++){
             try {
@@ -79,7 +79,7 @@ public class Communication {
                 while(true) {
                     Object message = in.readObject();
                     if (message instanceof Message) {
-                        urb.receive((Message) message);
+                        urb.deliver((Message) message);
                     }
                 }
             }catch (ClassNotFoundException | IOException e){
