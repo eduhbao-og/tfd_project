@@ -73,4 +73,8 @@ public class StreamletProtocol {
     public int getLeader_id() {
         return leader_id;
     }
+
+    public int getNode_id(){
+        return node_id;
+    }
 }
