@@ -9,7 +9,7 @@ public class URBLayer {
     private StreamletProtocol streamlet;
     private List<Message> messages;
 
-    public URBLayer(List<InetAddress> ips, List<Integer> ports){
+    public URBLayer(){
         messages = new ArrayList<Message>();
     }
 
