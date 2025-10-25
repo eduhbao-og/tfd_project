@@ -1,14 +1,13 @@
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class StreamletProtocol {
 
     private int num_nodes;
     private int epoch_duration;
+    private int epoch = 0;
     private int node_id;
     private TransactionGenerator tg;
     private Blockchain blockchain = new Blockchain();
@@ -25,7 +24,15 @@ public class StreamletProtocol {
         this.seed = seed;
         epoch_duration = 2 * duration;
         urb.setStreamlet(this);
-        start();
+
+        Timer timer = new Timer(true);
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                compute();
+            }
+        };
+        timer.scheduleAtFixedRate(task, 0, epoch_duration * 1000L);
     }
 
     private void selectLeader() {
@@ -42,17 +49,15 @@ public class StreamletProtocol {
         }
     }
 
-    private void start() {
-        for (int i = 0; i < Utils.EPOCHS; i++) {
-            proposed_blocks = new HashMap<>();
-            selectLeader();
-            if (leader_id == node_id) {
-                Block previous_block = blockchain.getBestChainBlock();
-                List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
-                transactions.addAll(tg.getTransactions(num_nodes));
-                URB_broadcast(new Message(Utils.MessageType.PROPOSE, Block.createBlock(previous_block.getHash(), i, previous_block.getLength() + 1, transactions), node_id));
-            }
-            //TODO - logic for waiting epoch duration and advancing to next iteration (maybe timer)
+    private void compute() {
+        epoch++;
+        proposed_blocks = new HashMap<>();
+        selectLeader();
+        if (leader_id == node_id) {
+            Block previous_block = blockchain.getBestChainBlock();
+            List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
+            transactions.addAll(tg.getTransactions(num_nodes));
+            URB_broadcast(new Message(Utils.MessageType.PROPOSE, Block.createBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions), node_id));
         }
     }
 
@@ -91,21 +96,23 @@ public class StreamletProtocol {
     }
 
     private void notarize(Block b) {
-        if (proposed_blocks.get(b) > num_nodes/2) {
+        if (proposed_blocks.get(b) > num_nodes / 2) {
             b.setStatus(Utils.BlockStatus.NOTARIZED);
             blockchain.addBlock(b);
+
+            //check for finalization
             List<Block> chain = blockchain.getBlockChain(b);
             int past_epoch = 0;
             int count = 0;
-            for(Block block : chain) {
-                if(count == 3) {
-                    for(Block block1 : chain) {
-                        if(block1.getStatus() != Utils.BlockStatus.FINALIZED)
+            for (Block block : chain) {
+                if (count == 3) {
+                    for (Block block1 : chain) {
+                        if (block1.getStatus() != Utils.BlockStatus.FINALIZED && !block1.equals(b))
                             block1.setStatus(Utils.BlockStatus.FINALIZED);
                     }
                     break;
                 }
-                if(!block.getHash().equals("0")) {
+                if (!block.getHash().equals("0")) {
                     if (block.getEpoch() - past_epoch == 1) {
                         count++;
                     } else {
@@ -117,11 +124,7 @@ public class StreamletProtocol {
         }
     }
 
-    public int getLeader_id() {
-        return leader_id;
-    }
-
-    public int getNode_id(){
+    public int getNode_id() {
         return node_id;
     }
 }
