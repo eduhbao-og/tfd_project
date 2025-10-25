@@ -57,7 +57,7 @@ public class StreamletProtocol {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
             transactions.addAll(tg.getTransactions(num_nodes));
-            URB_broadcast(new Message(Utils.MessageType.PROPOSE, Block.createBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions), node_id));
+            URB_broadcast(new Message(Utils.MessageType.PROPOSE, Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions), node_id));
         }
     }
 
@@ -78,8 +78,10 @@ public class StreamletProtocol {
                         proposed_blocks.put(proposed, 1);
                     }
                     notarize(proposed);
-                    URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(proposed.getPrevHash(),
-                            proposed.getEpoch(), longestChain.getLast().getLength() + 1, new ArrayList<>()), node_id));
+                    URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(Utils.BlockStatus.PROPOSED,
+                            proposed.getPrevHash(), proposed.getHash(),
+                            proposed.getEpoch(), longestChain.getLast().getLength() + 1,
+                            new ArrayList<>()), node_id));
                 }
             }
             case VOTE -> {

@@ -71,8 +71,12 @@ public class Block implements Serializable {
         return new Block(Utils.BlockStatus.NOTARIZED, "0", "0", 0, 0, new ArrayList<>());
     }
 
-    public static Block createBlock(String prev_hash, int epoch, int length, List<Transaction> transactions) {
+    public static Block createNewBlock(String prev_hash, int epoch, int length, List<Transaction> transactions) {
         return new Block(Utils.BlockStatus.PROPOSED, prev_hash, generateHash(), epoch, length, transactions);
+    }
+
+    public static Block createBlock(Utils.BlockStatus status, String prev_hash, String hash, int epoch, int length, List<Transaction> transactions) {
+        return new Block(status, prev_hash, hash, epoch, length, transactions);
     }
 
     @Override
