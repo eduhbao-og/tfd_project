@@ -16,7 +16,7 @@ public class Communication {
     private List<ObjectOutputStream> outputs ;
     private URBLayer urb;
 
-    public Communication(List<InetAddress> ips , List<Integer> ports, int port, URBLayer urb){
+    public Communication(List<InetAddress> ips , List<Integer> serverPorts, List<Integer> clientPorts, URBLayer urb){
         this.urb = urb;
         this.serverSockets = new ArrayList<>(ips.size());
         this.sockets = new ArrayList<>(ips.size());
@@ -25,7 +25,7 @@ public class Communication {
 
         for(int i = 0; i < ips.size(); i++){
             try {
-                serverSockets.add(new ServerSocket(ports.get(i)));
+                serverSockets.add(new ServerSocket(serverPorts.get(i)));
                 (new Server(serverSockets.get(i), urb)).start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -35,8 +35,7 @@ public class Communication {
         for(int i = 0; i < ips.size(); i++){
             while (true){
                 try {
-                    System.out.println(ips.get(i).getHostAddress() + " port: " + port);
-                    sockets.add(new Socket(ips.get(i).getHostAddress(),port));
+                    sockets.add(new Socket(ips.get(i).getHostAddress(),clientPorts.get(i)));
                     outputs.add(new ObjectOutputStream(sockets.get(i).getOutputStream()));
                     break;
                 } catch (IOException e) {

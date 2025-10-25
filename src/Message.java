@@ -17,7 +17,7 @@ public class Message implements Serializable {
                 if (!(content instanceof Block)) {
                     throw new IllegalArgumentException("For a VOTE-type message, the content must be a Block.");
                 }
-                if (((Block) content).getTransactions() != null) {
+                if (!((Block) content).getTransactions().isEmpty()) {
                     throw new IllegalArgumentException("For a VOTE-type message, the Block's transactions field must be null.");
                 }
             }
@@ -41,5 +41,10 @@ public class Message implements Serializable {
 
     public int getSender() {
         return sender;
+    }
+
+    @Override
+    public String toString(){
+        return "MESSAGE: " + "Type: " + type + " Sender: " + sender + "; Content: " + content;
     }
 }

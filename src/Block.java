@@ -74,4 +74,9 @@ public class Block implements Serializable {
     public static Block createBlock(String prev_hash, int epoch, int length, List<Transaction> transactions) {
         return new Block(Utils.BlockStatus.PROPOSED, prev_hash, generateHash(), epoch, length, transactions);
     }
+
+    @Override
+    public String toString() {
+        return "Block: Epoch: " + epoch + "; Hash: " + hash + "; Previous Hash: " + prev_hash;
+    }
 }

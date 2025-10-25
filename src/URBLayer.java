@@ -22,19 +22,23 @@ public class URBLayer {
     }
 
     public void broadcast(Message m){
+        System.out.println("SENT: " + m);
         communication.broadcast(m);
     }
 
     public void deliver(Message m){
+        System.out.println("ENTER");
         if (m.getType() == Utils.MessageType.ECHO){
             Message mes = (Message) m.getContent();
             if(isFirst(mes)){
+                System.out.println("RECEIVED ECHO: " + mes);
                 communication.broadcast(new Message(Utils.MessageType.ECHO, mes, streamlet.getNode_id()));
                 streamlet.URB_deliver(mes);
             }
             return;
         }
         if(isFirst(m)){
+            System.out.println("RECEIVED: " + m);
             communication.broadcast(new Message(Utils.MessageType.ECHO, m, streamlet.getNode_id()));
             streamlet.URB_deliver(m);
         }
@@ -42,10 +46,10 @@ public class URBLayer {
 
     private boolean isFirst(Message m){
         if (messages.contains(m)) {
-            return true;
+            return false;
         }
         messages.add(m);
-        return false;
+        return true;
     }
 
 }
