@@ -42,7 +42,7 @@ public class StreamletProtocol {
             byte[] hashBytes = digest.digest(seedBytes);
             int hashInt = ByteBuffer.wrap(hashBytes).getInt();
             hashInt = Math.abs(hashInt);
-            leader_id = hashInt % num_nodes;
+            leader_id = hashInt % num_nodes + 1;
             seed++;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -50,9 +50,11 @@ public class StreamletProtocol {
     }
 
     private void compute() {
+        System.out.println("EPOCH: " + epoch);
         epoch++;
         proposed_blocks = new HashMap<>();
         selectLeader();
+        System.out.println("Leader: " + leader_id);
         if (leader_id == node_id) {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);

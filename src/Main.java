@@ -22,7 +22,7 @@ public class Main {
 
         URBLayer urb = new URBLayer();
         new Communication(ips,  ports, clientPorts, urb);
-        new StreamletProtocol(2, 3, Integer.parseInt(args[0]), 1L, urb);
+        new StreamletProtocol(2, 1, Integer.parseInt(args[0]), 1L, urb);
     }
 
 }
