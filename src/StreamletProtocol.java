@@ -57,7 +57,9 @@ public class StreamletProtocol {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
             transactions.addAll(tg.getTransactions(num_nodes));
-            URB_broadcast(new Message(Utils.MessageType.PROPOSE, Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions), node_id));
+            Block proposed = Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions);
+            proposed_blocks.put(proposed, 1);
+            URB_broadcast(new Message(Utils.MessageType.PROPOSE, proposed, node_id));
         }
     }
 
@@ -75,7 +77,7 @@ public class StreamletProtocol {
                     if (proposed_blocks.containsKey(proposed)) {
                         proposed_blocks.put(proposed, proposed_blocks.get(proposed) + 1);
                     } else {
-                        proposed_blocks.put(proposed, 1);
+                        proposed_blocks.put(proposed, 2);
                     }
                     notarize(proposed);
                     URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(Utils.BlockStatus.PROPOSED,
@@ -98,6 +100,7 @@ public class StreamletProtocol {
     }
 
     private void notarize(Block b) {
+        System.out.println("Votes: " + proposed_blocks.get(b));
         if (proposed_blocks.get(b) > num_nodes / 2) {
             b.setStatus(Utils.BlockStatus.NOTARIZED);
             blockchain.addBlock(b);
