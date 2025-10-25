@@ -7,10 +7,10 @@ public class URBLayer {
     private List<ObjectOutputStream> outputs ;
     private Communication communication;
     private StreamletProtocol streamlet;
-    private List<Message> messages;
+    private List<Block> blocks;
 
     public URBLayer(){
-        messages = new ArrayList<Message>();
+        blocks = new ArrayList<Block>();
     }
 
     public void setCommunication(Communication communication){
@@ -27,7 +27,6 @@ public class URBLayer {
     }
 
     public void deliver(Message m){
-        System.out.println("ENTER");
         if (m.getType() == Utils.MessageType.ECHO){
             Message mes = (Message) m.getContent();
             if(isFirst(mes)){
@@ -45,10 +44,15 @@ public class URBLayer {
     }
 
     private boolean isFirst(Message m){
-        if (messages.contains(m)) {
-            return false;
+        Block block = (Block) m.getContent();
+        for (Block b : blocks){
+            if(b.isEqual(block)){
+                if (blocks.contains(m.getContent())) {
+                    return false;
+                }
+            }
         }
-        messages.add(m);
+        blocks.add((Block) m.getContent());
         return true;
     }
 

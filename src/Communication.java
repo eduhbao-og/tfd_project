@@ -86,7 +86,6 @@ public class Communication {
                     Object message = in.readObject();
                     if (message instanceof Message) {
                         urb.deliver((Message) message);
-                        System.out.println("message received: " + message);
                     }
                 }
             }catch (ClassNotFoundException | IOException e){

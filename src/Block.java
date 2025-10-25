@@ -83,4 +83,8 @@ public class Block implements Serializable {
     public String toString() {
         return "Block: Epoch: " + epoch + "; Hash: " + hash + "; Previous Hash: " + prev_hash;
     }
+
+    public boolean isEqual(Block b){
+        return b.getHash().equals(hash);
+    }
 }
