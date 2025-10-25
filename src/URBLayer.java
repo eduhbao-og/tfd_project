@@ -21,9 +21,18 @@ public class URBLayer {
         this.streamlet = streamlet;
     }
 
-    public void broadcast(Message m) {
+    public synchronized void broadcast(Message m) {
         System.out.println("SENT: " + m);
         communication.broadcast(m);
+        if(m.getType() != Utils.MessageType.ECHO){
+            Block block = (Block) m.getContent();
+            for (Block b : blocks) {
+                if (b.isEqual(block)) {
+                    return ;
+                }
+            }
+            blocks.add(block);
+        }
     }
 
     public void deliver(Message m) {
@@ -43,7 +52,7 @@ public class URBLayer {
         }
     }
 
-    private boolean isFirst(Message m) {
+    private synchronized boolean isFirst(Message m) {
         Block block = (Block) m.getContent();
         for (Block b : blocks) {
             if (b.isEqual(block)) {

@@ -29,7 +29,7 @@ public class Main {
 
         URBLayer urb = new URBLayer();
         new Communication(ips, serverPorts, clientPorts, urb);
-        new StreamletProtocol(nodes, 1, nodeId, 1L, urb);
+        new StreamletProtocol(nodes, 3, nodeId, 1L, urb);
     }
 
 }

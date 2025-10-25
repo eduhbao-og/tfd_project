@@ -50,8 +50,8 @@ public class StreamletProtocol {
     }
 
     private void compute() {
-        System.out.println("EPOCH: " + epoch);
         epoch++;
+        System.out.println("EPOCH: " + epoch);
         proposed_blocks = new HashMap<>();
         selectLeader();
         System.out.println("Leader: " + leader_id);
@@ -76,33 +76,46 @@ public class StreamletProtocol {
                 Block proposed = (Block) m.getContent();
                 List<Block> longestChain = blockchain.getLongestNotarizedChain();
                 if (longestChain.getLast().getHash().equals(proposed.getPrevHash())) {
-                    if (proposed_blocks.containsKey(proposed)) {
-                        proposed_blocks.put(proposed, proposed_blocks.get(proposed) + 1);
+                    Block block = getBlock(proposed);
+                    if (proposed_blocks.containsKey(block)) {
+                        proposed_blocks.put(block, proposed_blocks.get(block) + 1);
                     } else {
-                        proposed_blocks.put(proposed, 2);
+                        proposed_blocks.put(block, 2);
                     }
-                    notarize(proposed);
+                    notarize(block);
                     URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(Utils.BlockStatus.PROPOSED,
-                            proposed.getPrevHash(), proposed.getHash(),
-                            proposed.getEpoch(), longestChain.getLast().getLength() + 1,
+                            block.getPrevHash(), block.getHash(),
+                            block.getEpoch(), longestChain.getLast().getLength() + 1,
                             new ArrayList<>()), node_id));
                 }
             }
             case VOTE -> {
                 // add to vote counter to notarize block
                 Block proposed = (Block) m.getContent();
-                if (proposed_blocks.containsKey(proposed)) {
-                    proposed_blocks.put(proposed, proposed_blocks.get(proposed) + 1);
+                Block block = getBlock(proposed);
+                if (proposed_blocks.containsKey(block)) {
+                    proposed_blocks.put(block, proposed_blocks.get(block) + 1);
                 } else {
-                    proposed_blocks.put(proposed, 1);
+                    proposed_blocks.put(block, 1);
                 }
-                notarize(proposed);
+                notarize(block);
             }
         }
     }
 
+    private Block getBlock(Block b) {
+        for(Block block : proposed_blocks.keySet()) {
+            if(block.isEqual(b)) {
+                return block;
+            }
+        }
+        return b;
+    }
+
     private void notarize(Block b) {
+
         System.out.println("Votes: " + proposed_blocks.get(b));
+
         if (proposed_blocks.get(b) > num_nodes / 2) {
             b.setStatus(Utils.BlockStatus.NOTARIZED);
             blockchain.addBlock(b);
@@ -111,22 +124,22 @@ public class StreamletProtocol {
             List<Block> chain = blockchain.getBlockChain(b);
             int past_epoch = 0;
             int count = 0;
-            for (Block block : chain) {
+            for (Block block1 : chain) {
                 if (count == 3) {
-                    for (Block block1 : chain) {
-                        if (block1.getStatus() != Utils.BlockStatus.FINALIZED && !block1.equals(b))
-                            block1.setStatus(Utils.BlockStatus.FINALIZED);
+                    for (Block block2 : chain) {
+                        if (block2.getStatus() != Utils.BlockStatus.FINALIZED && !block2.equals(b))
+                            block2.setStatus(Utils.BlockStatus.FINALIZED);
                     }
                     break;
                 }
-                if (!block.getHash().equals("0")) {
-                    if (block.getEpoch() - past_epoch == 1) {
+                if (!block1.getHash().equals("0")) {
+                    if (block1.getEpoch() - past_epoch == 1) {
                         count++;
                     } else {
                         count = 0;
                     }
                 }
-                past_epoch = block.getEpoch();
+                past_epoch = block1.getEpoch();
             }
         }
     }
