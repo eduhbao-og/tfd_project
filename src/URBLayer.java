@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class URBLayer {
-    private List<ObjectOutputStream> outputs;
     private Communication communication;
     private StreamletProtocol streamlet;
     private List<Message> messages;
