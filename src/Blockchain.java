@@ -15,14 +15,6 @@ public class Blockchain {
         chain.add(b);
     }
 
-    public Block getBlock(int length) {
-        for (Block b : chain) {
-            if (b.getLength() == length)
-                return b;
-        }
-        throw new NoSuchElementException("Block with length " + length + " doesn't exist.");
-    }
-
     public Block getBestChainBlock() {
         Block bestBlock = chain.getLast();
         int numNotarized = 0;
@@ -66,13 +58,6 @@ public class Blockchain {
                 return b;
         }
         return null;
-    }
-
-    public void setBlockStatus(int length, Utils.BlockStatus status) {
-        for (Block b : chain) {
-            if (b.getLength() == length)
-                b.setStatus(status);
-        }
     }
 
     public List<Block> getBlockChain(Block b) {
