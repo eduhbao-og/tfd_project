@@ -24,7 +24,10 @@ public class StreamletProtocol {
         this.seed = seed;
         epoch_duration = 2 * duration;
         urb.setStreamlet(this);
+    }
 
+    public void start(){
+        System.out.println("START");
         Timer timer = new Timer(true);
         TimerTask task = new TimerTask() {
             @Override

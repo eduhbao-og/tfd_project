@@ -20,6 +20,10 @@ public class URBLayer {
         this.streamlet = streamlet;
     }
 
+    public void start(){
+        streamlet.start();
+    }
+
     public synchronized void broadcast(Message m) {
         System.out.println("SENT: " + m);
         communication.broadcast(m);
