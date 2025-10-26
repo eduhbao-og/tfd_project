@@ -27,7 +27,6 @@ public class StreamletProtocol {
     }
 
     public void start(){
-        System.out.println("START");
         Timer timer = new Timer(true);
         TimerTask task = new TimerTask() {
             @Override
@@ -54,10 +53,10 @@ public class StreamletProtocol {
 
     private void compute() {
         epoch++;
-        System.out.println("EPOCH: " + epoch);
         proposed_blocks = new HashMap<>();
         selectLeader();
-        System.out.println("Leader: " + leader_id);
+        System.out.println("=============================================");
+        System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
         if (leader_id == node_id) {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
