@@ -28,4 +28,9 @@ public class Transaction implements Serializable {
     public double getAmount() {
         return amount;
     }
+
+    @Override
+    public String toString() {
+        return "Sender: " + sender + " Id: " + id;
+    }
 }

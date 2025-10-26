@@ -98,4 +98,13 @@ public class Blockchain {
         }
         return transactions;
     }
+
+    @Override
+    public String toString() {
+        String res = "CHAIN";
+        for(Block b: chain){
+            res += "\n" + b;
+        }
+        return res;
+    }
 }

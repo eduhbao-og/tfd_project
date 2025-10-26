@@ -2,6 +2,7 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StreamletProtocol {
 
@@ -14,7 +15,7 @@ public class StreamletProtocol {
     private URBLayer urb;
     private int leader_id;
     private long seed;
-    private HashMap<Block, Integer> proposed_blocks = new HashMap<>();
+    private ConcurrentHashMap<Block, Integer> proposed_blocks = new ConcurrentHashMap<>();
 
     public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb) {
         this.urb = urb;
@@ -53,10 +54,11 @@ public class StreamletProtocol {
 
     private void compute() {
         epoch++;
-        proposed_blocks = new HashMap<>();
+        proposed_blocks = new ConcurrentHashMap<>();
         selectLeader();
         System.out.println("=============================================");
         System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
+        System.out.println(blockchain);
         if (leader_id == node_id) {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);

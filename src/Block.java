@@ -81,7 +81,11 @@ public class Block implements Serializable {
 
     @Override
     public String toString() {
-        return "Block: Epoch: " + epoch + "; Hash: " + hash + "; Previous Hash: " + prev_hash;
+        String res = "E:" + epoch + ";H:" + hash + ";PH:" + prev_hash + ";T: \n    ";
+        for(Transaction t : transactions){
+            res += " | " + t;
+        }
+        return res;
     }
 
     public boolean isEqual(Block b){

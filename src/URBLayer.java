@@ -25,16 +25,25 @@ public class URBLayer {
     }
 
     public synchronized void broadcast(Message m) {
-        System.out.println("SENT: " + m);
         communication.broadcast(m);
-        if(m.getType() != Utils.MessageType.ECHO){
-            Block block = (Block) m.getContent();
-            for (Message b : messages) {
-                if (((Block)b.getContent()).isEqual(block)) {
-                    return ;
+        if(m.getType() != Utils.MessageType.ECHO) {
+            if (m.getType() == Utils.MessageType.PROPOSE) {
+                Block block = (Block) m.getContent();
+                for (Message b : messages) {
+                    if (((Block) b.getContent()).isEqual(block)) {
+                        return;
+                    }
                 }
+                messages.add(m);
+            } else {
+                Block block = (Block) m.getContent();
+                for (Message b : messages) {
+                    if (((Block) b.getContent()).isEqual(block) && b.getSender() == m.getSender()) {
+                        return;
+                    }
+                }
+                messages.add(m);
             }
-            messages.add(m);
         }
     }
 
@@ -42,14 +51,12 @@ public class URBLayer {
         if (m.getType() == Utils.MessageType.ECHO) {
             Message mes = (Message) m.getContent();
             if (isFirst(mes)) {
-                System.out.println("RECEIVED ECHO: " + mes);
                 communication.broadcast(new Message(Utils.MessageType.ECHO, mes, streamlet.getNode_id()));
                 streamlet.URB_deliver(mes);
             }
             return;
         }
         if (isFirst(m)) {
-            System.out.println("RECEIVED: " + m);
             communication.broadcast(new Message(Utils.MessageType.ECHO, m, streamlet.getNode_id()));
             streamlet.URB_deliver(m);
         }

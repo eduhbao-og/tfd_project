@@ -66,8 +66,6 @@ public class Communication {
         outputs.add(out);
         readyConnections++;
 
-        System.out.println("CON: " + readyConnections);
-
         if (readyConnections == nodes) {
             System.out.println("STARTING...");
             urb.start();
