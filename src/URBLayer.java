@@ -1,5 +1,4 @@
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,10 +6,10 @@ public class URBLayer {
     private List<ObjectOutputStream> outputs;
     private Communication communication;
     private StreamletProtocol streamlet;
-    private List<Block> blocks;
+    private List<Message> messages;
 
     public URBLayer() {
-        blocks = new ArrayList<Block>();
+        messages = new ArrayList<Message>();
     }
 
     public void setCommunication(Communication communication) {
@@ -26,12 +25,12 @@ public class URBLayer {
         communication.broadcast(m);
         if(m.getType() != Utils.MessageType.ECHO){
             Block block = (Block) m.getContent();
-            for (Block b : blocks) {
-                if (b.isEqual(block)) {
+            for (Message b : messages) {
+                if (((Block)b.getContent()).isEqual(block)) {
                     return ;
                 }
             }
-            blocks.add(block);
+            messages.add(m);
         }
     }
 
@@ -54,13 +53,26 @@ public class URBLayer {
 
     private synchronized boolean isFirst(Message m) {
         Block block = (Block) m.getContent();
-        for (Block b : blocks) {
-            if (b.isEqual(block)) {
-                return false;
+        if (m.getType() == Utils.MessageType.VOTE) {
+            for (Message mes : messages) {
+                System.out.println("OUR BLOCK: " + ((Block) mes.getContent()).getHash() + " OTHER BLOCK: " + block.getHash());
+                System.out.println("OUR SENDER: " + mes.getSender() + " OTHER SENDER: " + m.getSender());
+                if (((Block) mes.getContent()).isEqual(block) && m.getSender() == mes.getSender()) {
+                    System.out.println("FALSE");
+                    return false;
+                }
             }
+            System.out.println("TRUE");
+            messages.add(m);
+            return true;
+        } else {
+            for (Message b : messages) {
+                if (((Block)b.getContent()).isEqual(block)) {
+                    return false;
+                }
+            }
+            messages.add(m);
+            return true;
         }
-        blocks.add((Block) m.getContent());
-        return true;
     }
-
 }
