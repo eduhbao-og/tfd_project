@@ -58,6 +58,7 @@ public class StreamletProtocol {
         selectLeader();
         System.out.println("=============================================");
         System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
+        System.out.println("---------------------------------------------");
         System.out.println(blockchain);
         if (leader_id == node_id) {
             Block previous_block = blockchain.getBestChainBlock();
@@ -117,9 +118,6 @@ public class StreamletProtocol {
     }
 
     private void notarize(Block b) {
-
-        System.out.println("Votes: " + proposed_blocks.get(b));
-
         if (proposed_blocks.get(b) > num_nodes / 2 && blockchain.getBlock(b.getHash()) == null) {
             b.setStatus(Utils.BlockStatus.NOTARIZED);
             blockchain.addBlock(b);

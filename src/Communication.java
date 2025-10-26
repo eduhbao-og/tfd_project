@@ -22,7 +22,6 @@ public class Communication {
         this.urb = urb;
         this.outputs = new ArrayList<>();
 
-        // Start server socket to accept incoming connections
         try {
             serverSocket = new ServerSocket(serverPort);
         } catch (IOException e) {
@@ -31,7 +30,6 @@ public class Communication {
 
         new ServerThread().start();
 
-        // Connect to nodes with lower IDs
         for (int i = 0; i < nodeId - 1; i++) {
             while (true) {
                 try {
@@ -67,12 +65,10 @@ public class Communication {
         readyConnections++;
 
         if (readyConnections == nodes) {
-            System.out.println("STARTING...");
             urb.start();
         }
     }
 
-    // Handles outgoing connections to nodes with lower IDs
     private class OutgoingConnection extends Thread {
         private Socket socket;
 
@@ -83,7 +79,6 @@ public class Communication {
         @Override
         public void run() {
             try {
-                // Outgoing connection: write first, then read
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -97,7 +92,6 @@ public class Communication {
         }
     }
 
-    // Handles incoming connections from nodes with higher IDs
     private class IncomingConnection extends Thread {
         private Socket socket;
 
@@ -108,7 +102,6 @@ public class Communication {
         @Override
         public void run() {
             try {
-                // Incoming connection: read first, then write
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 out.flush();
@@ -122,7 +115,6 @@ public class Communication {
         }
     }
 
-    // Thread to accept incoming connections
     private class ServerThread extends Thread {
         @Override
         public void run() {
@@ -137,7 +129,6 @@ public class Communication {
         }
     }
 
-    // Listen for messages from a connected node
     private void listenIncoming(ObjectInputStream in) throws IOException, ClassNotFoundException {
         while (true) {
             Object obj = in.readObject();

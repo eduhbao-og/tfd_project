@@ -101,9 +101,9 @@ public class Blockchain {
 
     @Override
     public String toString() {
-        String res = "CHAIN";
+        String res = ">>>> CHAIN >>>>";
         for(Block b: chain){
-            res += "\n" + b;
+            res += "\n-> " + b;
         }
         return res;
     }

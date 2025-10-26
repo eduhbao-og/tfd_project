@@ -95,10 +95,11 @@ public class Block implements Serializable {
 
     @Override
     public String toString() {
-        String res = "S:" + status + ";E:" + epoch + ";H:" + hash + ";PH:" + prev_hash + ";\nT: ";
+        String res = "Status:" + status + ";Epoch:" + epoch + ";Hash:" + hash + ";PrevHash:" + prev_hash + ";\nTransactions: ";
         for(Transaction t : transactions){
-            res += t + " | ";
+            res += t + " , ";
         }
+        res += " | ";
         return res;
     }
 
