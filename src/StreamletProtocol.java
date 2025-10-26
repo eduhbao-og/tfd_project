@@ -62,7 +62,7 @@ public class StreamletProtocol {
         if (leader_id == node_id) {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
-            transactions.addAll(tg.getTransactions(num_nodes));
+            transactions.addAll(tg.getTransactions(2));
             Block proposed = Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions);
             proposed_blocks.put(proposed, 1);
             URB_broadcast(new Message(Utils.MessageType.PROPOSE, proposed, node_id));
@@ -73,7 +73,7 @@ public class StreamletProtocol {
         urb.broadcast(m);
     }
 
-    public void URB_deliver(Message m) {
+    public synchronized void URB_deliver(Message m) {
         switch (m.getType()) {
             case PROPOSE -> {
                 // logic for deciding if the proposed block is voted or not
@@ -120,7 +120,7 @@ public class StreamletProtocol {
 
         System.out.println("Votes: " + proposed_blocks.get(b));
 
-        if (proposed_blocks.get(b) > num_nodes / 2) {
+        if (proposed_blocks.get(b) > num_nodes / 2 && blockchain.getBlock(b.getHash()) == null) {
             b.setStatus(Utils.BlockStatus.NOTARIZED);
             blockchain.addBlock(b);
 
@@ -134,6 +134,7 @@ public class StreamletProtocol {
                         if (block2.getStatus() != Utils.BlockStatus.FINALIZED && !block2.equals(b))
                             block2.setStatus(Utils.BlockStatus.FINALIZED);
                     }
+                    b.removeTransactions(blockchain.getBlock(b.getPrevHash()).getTransactions());
                     break;
                 }
                 if (!block1.getHash().equals("0")) {

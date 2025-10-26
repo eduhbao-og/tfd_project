@@ -2,6 +2,7 @@ import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -79,11 +80,24 @@ public class Block implements Serializable {
         return new Block(status, prev_hash, hash, epoch, length, transactions);
     }
 
+    public synchronized void removeTransactions(List<Transaction> list) {
+        Iterator<Transaction> it = transactions.iterator();
+        while (it.hasNext()) {
+            Transaction t1 = it.next();
+            for (Transaction t2 : list) {
+                if (t1.getId() == t2.getId() && t1.getSender() == t2.getSender()) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
     @Override
     public String toString() {
-        String res = "E:" + epoch + ";H:" + hash + ";PH:" + prev_hash + ";T: \n    ";
+        String res = "S:" + status + ";E:" + epoch + ";H:" + hash + ";PH:" + prev_hash + ";\nT: ";
         for(Transaction t : transactions){
-            res += " | " + t;
+            res += t + " | ";
         }
         return res;
     }

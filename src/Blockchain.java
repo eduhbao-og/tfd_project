@@ -65,7 +65,7 @@ public class Blockchain {
             if (b.getHash().equals(hash))
                 return b;
         }
-        throw new NoSuchElementException("Block with hash \"" + hash + "\" doesn't exist.");
+        return null;
     }
 
     public void setBlockStatus(int length, Utils.BlockStatus status) {
