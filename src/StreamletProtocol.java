@@ -17,7 +17,6 @@ public class StreamletProtocol {
     private HashMap<Block, Integer> proposed_blocks = new HashMap<>();
 
     public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb) {
-        System.out.println("STREAMLET");
         this.urb = urb;
         tg = new TransactionGenerator(num_nodes);
         this.node_id = node_id;

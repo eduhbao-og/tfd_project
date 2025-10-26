@@ -55,8 +55,6 @@ public class URBLayer {
         Block block = (Block) m.getContent();
         if (m.getType() == Utils.MessageType.VOTE) {
             for (Message mes : messages) {
-                System.out.println("OUR BLOCK: " + ((Block) mes.getContent()).getHash() + " OTHER BLOCK: " + block.getHash());
-                System.out.println("OUR SENDER: " + mes.getSender() + " OTHER SENDER: " + m.getSender());
                 if (((Block) mes.getContent()).isEqual(block) && m.getSender() == mes.getSender()) {
                     System.out.println("FALSE");
                     return false;

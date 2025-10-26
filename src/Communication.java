@@ -5,41 +5,55 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
 
 public class Communication {
 
-    private List<ServerSocket> serverSockets;
+    //private List<ServerSocket> serverSockets;
+    private ServerSocket serverSocket;
     private List<Socket> sockets;
-    private List<ObjectOutputStream> outputs ;
+    private List<ObjectOutputStream> outputs;
     private URBLayer urb;
+    private int nodeId;
 
-    public Communication(List<InetAddress> ips , List<Integer> serverPorts, List<Integer> clientPorts, URBLayer urb){
+    public Communication(int nodeId, List<InetAddress> ips , List<Integer> serverPorts, List<Integer> clientPorts, URBLayer urb){
+        this.nodeId = nodeId;
         this.urb = urb;
-        this.serverSockets = new ArrayList<>(ips.size());
+        //this.serverSockets = new ArrayList<>(ips.size());
+        try {
+            this.serverSocket = new ServerSocket(serverPorts.get(nodeId));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        (new Server(serverSocket, urb)).start();
         this.sockets = new ArrayList<>(ips.size());
-        outputs = new ArrayList<>(ips.size());
+        outputs = Collections.synchronizedList(new ArrayList<>());
         urb.setCommunication(this);
 
-        for(int i = 0; i < ips.size(); i++){
-            try {
-                serverSockets.add(new ServerSocket(serverPorts.get(i)));
-                (new Server(serverSockets.get(i), urb)).start();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+//        for(int i = 0; i < ips.size(); i++){
+//            try {
+//                serverSockets.add(new ServerSocket(serverPorts.get(i)));
+//                (new Server(serverSockets.get(i), urb)).start();
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
 
-        for(int i = 0; i < ips.size(); i++){
+        for(int i = 0; i < nodeId; i++){
             while (true){
                 try {
                     sockets.add(new Socket(ips.get(i).getHostAddress(),clientPorts.get(i)));
                     outputs.add(new ObjectOutputStream(sockets.get(i).getOutputStream()));
                     break;
                 } catch (IOException e) {
-                    continue;
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         }
@@ -49,14 +63,14 @@ public class Communication {
         for (ObjectOutputStream o : outputs){
             try {
                 o.writeObject(m);
+                o.flush();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private static class Server extends Thread{
-//        private ObjectOutputStream out;
+    private class Server extends Thread{
         private ObjectInputStream in;
         private ServerSocket ss;
         private URBLayer urb;
@@ -69,15 +83,16 @@ public class Communication {
 
         @Override
         public void run(){
-            try {
-                Socket socket = ss.accept();
-//                out = new ObjectOutputStream(socket.getOutputStream());
-                in = new ObjectInputStream(socket.getInputStream());
-                serve();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            while(true) {
+                try {
+                    Socket socket = ss.accept();
+                    outputs.add(new ObjectOutputStream(socket.getOutputStream()));
+                    in = new ObjectInputStream(socket.getInputStream());
+                    serve();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
-
         }
 
         private void serve(){
@@ -88,7 +103,7 @@ public class Communication {
                         urb.deliver((Message) message);
                     }
                 }
-            }catch (ClassNotFoundException | IOException e){
+            } catch (ClassNotFoundException | IOException e){
                 e.printStackTrace();
             }
         }
