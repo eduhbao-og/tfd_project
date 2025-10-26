@@ -5,164 +5,147 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import static java.lang.Thread.sleep;
 
 public class Communication {
 
-    //private List<ServerSocket> serverSockets;
     private ServerSocket serverSocket;
-    private List<Socket> sockets;
     private List<ObjectOutputStream> outputs;
     private URBLayer urb;
     private int nodeId;
-    private int con;
     private int nodes;
+    private int readyConnections = 0;
 
-    public Communication(int nodeId, List<InetAddress> ips , int serverPort, List<Integer> clientPorts, URBLayer urb){
+    public Communication(int nodeId, List<InetAddress> ips, int serverPort, List<Integer> clientPorts, URBLayer urb) {
         this.nodeId = nodeId;
+        this.nodes = ips.size();
         this.urb = urb;
-        con = 0;
-        nodes = ips.size();
-        outputs = new ArrayList<ObjectOutputStream>(ips.size());
-        sockets = new ArrayList<Socket>(ips.size());
-        //this.serverSockets = new ArrayList<>(ips.size());
-//        try {
-//            this.serverSocket = new ServerSocket(serverPort);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        (new Server(serverSocket, urb)).start();
-//        this.sockets = new ArrayList<>(ips.size());
-//        outputs = Collections.synchronizedList(new ArrayList<>());
-//        urb.setCommunication(this);
+        this.outputs = new ArrayList<>();
 
+        // Start server socket to accept incoming connections
         try {
-            this.serverSocket = new ServerSocket(serverPort);
-
+            serverSocket = new ServerSocket(serverPort);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        for(int i = 0; i < ips.size(); i++){
-            (new Server(serverSocket, urb)).start();
-        }
+        new ServerThread().start();
 
-        for(int i = 0; i < nodeId - 1; i++){
-            while (true){
+        // Connect to nodes with lower IDs
+        for (int i = 0; i < nodeId - 1; i++) {
+            while (true) {
                 try {
-                    Socket s = new Socket(ips.get(i).getHostAddress(),clientPorts.get(i));
-                    sockets.add(s);
-                    outputs.add(new ObjectOutputStream(s.getOutputStream()));
-                    streamlet();
+                    Socket socket = new Socket(ips.get(i).getHostAddress(), clientPorts.get(i));
+                    new OutgoingConnection(socket).start();
                     break;
                 } catch (IOException e) {
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(200); // retry after a short delay
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
                     }
                 }
             }
         }
+
         urb.setCommunication(this);
     }
 
-    private void streamlet(){
-        con ++;
-        System.out.println("CON: " + con);
-        System.out.println("NODES: " + nodes);
-        if(con == nodes)
-            urb.start();
-    }
-
-    public void broadcast(Message m){
-
-        for (ObjectOutputStream o : outputs){
+    public synchronized void broadcast(Message m) {
+        for (ObjectOutputStream out : outputs) {
             try {
-                o.writeObject(m);
-                o.flush();
+                out.writeObject(m);
+                out.flush();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private class Client extends Thread {
-        private ObjectInputStream in;
+    private synchronized void connectionReady(ObjectOutputStream out) {
+        outputs.add(out);
+        readyConnections++;
+
+        System.out.println("CON: " + readyConnections);
+
+        if (readyConnections == nodes) {
+            System.out.println("STARTING...");
+            urb.start();
+        }
+    }
+
+    // Handles outgoing connections to nodes with lower IDs
+    private class OutgoingConnection extends Thread {
         private Socket socket;
 
-        public Client(Socket socket){
+        public OutgoingConnection(Socket socket) {
             this.socket = socket;
         }
 
         @Override
-        public void run(){
-            while(true) {
-                try {
-                    outputs.add(new ObjectOutputStream(socket.getOutputStream()));
-                    in = new ObjectInputStream(socket.getInputStream());
-                    streamlet();
-                    serve();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+        public void run() {
+            try {
+                // Outgoing connection: write first, then read
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out.flush();
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
-        private void serve(){
-            try{
-                while(true) {
-                    Object message = in.readObject();
-                    if (message instanceof Message) {
-                        urb.deliver((Message) message);
-                    }
-                }
-            } catch (ClassNotFoundException | IOException e){
-                e.printStackTrace();
+                connectionReady(out);
+                listenIncoming(in);
+
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
             }
         }
     }
 
-    private class Server extends Thread{
-        private ObjectInputStream in;
-        private ServerSocket ss;
+    // Handles incoming connections from nodes with higher IDs
+    private class IncomingConnection extends Thread {
+        private Socket socket;
 
-        public Server(ServerSocket ss, URBLayer urb){
-            this.ss = ss;
-            System.out.println("PORTA BARALHOOOOO!!!!" + ss.getLocalPort());
+        public IncomingConnection(Socket socket) {
+            this.socket = socket;
         }
 
         @Override
-        public void run(){
-            while(true) {
-                try {
-                    Socket socket = ss.accept();
-                    outputs.add(new ObjectOutputStream(socket.getOutputStream()));
-                    in = new ObjectInputStream(socket.getInputStream());
-                    streamlet();
-                    serve();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+        public void run() {
+            try {
+                // Incoming connection: read first, then write
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out.flush();
+
+                connectionReady(out);
+                listenIncoming(in);
+
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
             }
         }
-
-        private void serve(){
-            try{
-                while(true) {
-                    Object message = in.readObject();
-                    if (message instanceof Message) {
-                        urb.deliver((Message) message);
-                    }
-                }
-            } catch (ClassNotFoundException | IOException e){
-                e.printStackTrace();
-            }
-        }
-
     }
 
+    // Thread to accept incoming connections
+    private class ServerThread extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Socket socket = serverSocket.accept();
+                    new IncomingConnection(socket).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Listen for messages from a connected node
+    private void listenIncoming(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        while (true) {
+            Object obj = in.readObject();
+            if (obj instanceof Message) {
+                urb.deliver((Message) obj);
+            }
+        }
+    }
 }

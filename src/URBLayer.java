@@ -60,11 +60,9 @@ public class URBLayer {
         if (m.getType() == Utils.MessageType.VOTE) {
             for (Message mes : messages) {
                 if (((Block) mes.getContent()).isEqual(block) && m.getSender() == mes.getSender()) {
-                    System.out.println("FALSE");
                     return false;
                 }
             }
-            System.out.println("TRUE");
             messages.add(m);
             return true;
         } else {
