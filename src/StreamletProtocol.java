@@ -105,6 +105,10 @@ public class StreamletProtocol {
                     Block proposed = (Block) m.getContent()[0];
                     List<Block> proposed_notarized_chain = (List<Block>) m.getContent()[1];
                     blockchain.setProposedNotarizedChain(proposed_notarized_chain);
+
+                    // fix holes in blockchain
+                    blockchain.getBlockChain(proposed);
+
                     List<Block> longestChain = blockchain.getLongestNotarizedChain();
 
                     // logic for deciding if the proposed block is voted or not
@@ -117,11 +121,12 @@ public class StreamletProtocol {
                         }
                         notarize(block);
 
-                        Object[] content = new Object[1];
+                        Object[] content = new Object[2];
                         content[0] = Block.createBlock(Utils.BlockStatus.PROPOSED,
                                 block.getPrevHash(), block.getHash(),
                                 block.getEpoch(), longestChain.getLast().getLength() + 1,
                                 new ArrayList<>());
+                        content[1] = Utils.deepCopy(proposed_notarized_chain);
                         URB_broadcast(new Message(Utils.MessageType.VOTE, content, node_id));
                     }
                 }
@@ -129,6 +134,8 @@ public class StreamletProtocol {
                     // add to vote counter to notarize block
                     Block proposed = (Block) m.getContent()[0];
                     Block block = getBlock(proposed);
+                    List<Block> proposed_notarized_chain = (List<Block>) m.getContent()[1];
+                    blockchain.setProposedNotarizedChain(proposed_notarized_chain);
                     if (proposed_blocks.containsKey(block)) {
                         proposed_blocks.put(block, proposed_blocks.get(block) + 1);
                     } else {
