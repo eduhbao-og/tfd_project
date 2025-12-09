@@ -52,12 +52,6 @@ public class Communication {
     public synchronized void broadcast(Message m) {
         for (ObjectOutputStream out : outputs) {
             try {
-                if(m.getType() == Utils.MessageType.PROPOSE) {
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                    System.out.println("SENT NOTARIZED PARENT CHAIN");
-                    System.out.println(m.getContent()[1]);
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                }
                 out.writeObject(m);
                 out.flush();
             } catch (IOException e) {
@@ -139,12 +133,6 @@ public class Communication {
         while (true) {
             Object obj = in.readObject();
             if (obj instanceof Message) {
-                if(((Message) obj).getType() == Utils.MessageType.PROPOSE) {
-                    System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-                    System.out.println("[COMMUNICATION] RECEIVED NOTARIZED PARENT CHAIN");
-                    System.out.println((List<Block>) ((Message) obj).getContent()[1]);
-                    System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-                }
                 urb.deliver((Message) obj);
             }
         }

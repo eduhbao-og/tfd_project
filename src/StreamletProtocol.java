@@ -38,9 +38,9 @@ public class StreamletProtocol {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-//                if (epoch > 0) {
-//                    System.out.println(blockchain);
-//                }
+                if (epoch > 0) {
+                    System.out.println(blockchain);
+                }
                 compute();
             }
         };
