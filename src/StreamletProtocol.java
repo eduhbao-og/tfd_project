@@ -86,7 +86,7 @@ public class StreamletProtocol {
 
             Object[] content = new Object[2];
             content[0] = proposed;
-            content[1] = parent_chain;
+            content[1] = Utils.deepCopy(parent_chain);
 
             URB_broadcast(new Message(Utils.MessageType.PROPOSE, content, node_id));
         }

@@ -83,7 +83,7 @@ public class Blockchain {
     }
 
     public void setProposedNotarizedChain(List<Block> proposed_notarized_chain) {
-        this.proposed_notarized_chain = proposed_notarized_chain;
+        this.proposed_notarized_chain = Utils.deepCopy(proposed_notarized_chain);
     }
 
     public Block getLastBlock() {
