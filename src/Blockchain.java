@@ -1,14 +1,18 @@
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Blockchain {
 
-    List<Block> chain = new ArrayList<>();
+    List<Block> chain = new CopyOnWriteArrayList<>();
+    List<Block> proposed_notarized_chain = new CopyOnWriteArrayList<>();
 
     public Blockchain() {
         chain.add(Block.createGenesisBlock());
+    }
+
+    public Blockchain(List<Block> chain) {
+        this.chain = chain;
     }
 
     public void addBlock(Block b) {
@@ -85,6 +89,10 @@ public class Blockchain {
             }
         }
         return transactions;
+    }
+
+    public void setProposedNotarizedChain(List<Block> proposed_notarized_chain) {
+        this.proposed_notarized_chain = proposed_notarized_chain;
     }
 
     @Override

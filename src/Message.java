@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.List;
 
 public class Message implements Serializable {
     private Utils.MessageType type;
@@ -9,8 +10,8 @@ public class Message implements Serializable {
         this.type = type;
         switch (type) {
             case PROPOSE -> {
-                if (!(content instanceof Block)) {
-                    throw new IllegalArgumentException("For a PROPOSE-type message, the content must be a Block.");
+                if (!(content instanceof List<?>)) {
+                    throw new IllegalArgumentException("For a PROPOSE-type message, the content must be a List<Block>.");
                 }
             }
             case VOTE -> {

@@ -76,7 +76,9 @@ public class StreamletProtocol {
             transactions.addAll(tg.getTransactions(2));
             Block proposed = Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions);
             proposed_blocks.put(proposed, 1);
-            URB_broadcast(new Message(Utils.MessageType.PROPOSE, proposed, node_id));
+            List<Block> notarized_parent_chain = blockchain.getLongestNotarizedChain();
+            notarized_parent_chain.add(proposed);
+            URB_broadcast(new Message(Utils.MessageType.PROPOSE, notarized_parent_chain, node_id));
         }
     }
 
@@ -85,11 +87,14 @@ public class StreamletProtocol {
     }
 
     public synchronized void URB_deliver(Message m) {
+        // checks if process is out of confusion period/is correct
         if (!byzantine || (epoch < confusion_start || epoch >= confusion_start + confusion_duration)) {
             switch (m.getType()) {
                 case PROPOSE -> {
                     // logic for deciding if the proposed block is voted or not
-                    Block proposed = (Block) m.getContent();
+                    List<Block> proposed_notarized_chain = (List<Block>) m.getContent();
+                    Block proposed = proposed_notarized_chain.removeLast();
+                    blockchain.setProposedNotarizedChain(proposed_notarized_chain);
                     List<Block> longestChain = blockchain.getLongestNotarizedChain();
                     if (longestChain.getLast().getHash().equals(proposed.getPrevHash())) {
                         Block block = getBlock(proposed);
