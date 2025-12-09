@@ -27,17 +27,17 @@ public class URBLayer {
         communication.broadcast(m);
         if(m.getType() != Utils.MessageType.ECHO) {
             if (m.getType() == Utils.MessageType.PROPOSE) {
-                Block block = (Block) m.getContent();
+                Block block = (Block) m.getContent()[0];
                 for (Message b : messages) {
-                    if (((Block) b.getContent()).isEqual(block)) {
+                    if (((Block) b.getContent()[0]).isEqual(block)) {
                         return;
                     }
                 }
                 messages.add(m);
             } else {
-                Block block = (Block) m.getContent();
+                Block block = (Block) m.getContent()[0];
                 for (Message b : messages) {
-                    if (((Block) b.getContent()).isEqual(block) && b.getSender() == m.getSender()) {
+                    if (((Block) b.getContent()[0]).isEqual(block) && b.getSender() == m.getSender()) {
                         return;
                     }
                 }
@@ -48,24 +48,28 @@ public class URBLayer {
 
     public void deliver(Message m) {
         if (m.getType() == Utils.MessageType.ECHO) {
-            Message mes = (Message) m.getContent();
+            Message mes = (Message) m.getContent()[0];
             if (isFirst(mes)) {
-                communication.broadcast(new Message(Utils.MessageType.ECHO, mes, streamlet.getNode_id()));
+                Object[] content = new Object[1];
+                content[0] = mes;
+                communication.broadcast(new Message(Utils.MessageType.ECHO, content, streamlet.getNode_id()));
                 streamlet.URB_deliver(mes);
             }
             return;
         }
         if (isFirst(m)) {
-            communication.broadcast(new Message(Utils.MessageType.ECHO, m, streamlet.getNode_id()));
+            Object[] content = new Object[1];
+            content[0] = m;
+            communication.broadcast(new Message(Utils.MessageType.ECHO, content, streamlet.getNode_id()));
             streamlet.URB_deliver(m);
         }
     }
 
     private synchronized boolean isFirst(Message m) {
-        Block block = (Block) m.getContent();
+        Block block = (Block) m.getContent()[0];
         if (m.getType() == Utils.MessageType.VOTE) {
             for (Message mes : messages) {
-                if (((Block) mes.getContent()).isEqual(block) && m.getSender() == mes.getSender()) {
+                if (((Block) mes.getContent()[0]).isEqual(block) && m.getSender() == mes.getSender()) {
                     return false;
                 }
             }
@@ -73,7 +77,7 @@ public class URBLayer {
             return true;
         } else {
             for (Message b : messages) {
-                if (((Block)b.getContent()).isEqual(block)) {
+                if (((Block)b.getContent()[0]).isEqual(block)) {
                     return false;
                 }
             }

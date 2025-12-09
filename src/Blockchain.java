@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -9,10 +10,6 @@ public class Blockchain {
 
     public Blockchain() {
         chain.add(Block.createGenesisBlock());
-    }
-
-    public Blockchain(List<Block> chain) {
-        this.chain = chain;
     }
 
     public void addBlock(Block b) {
@@ -61,6 +58,7 @@ public class Blockchain {
             if (b.getHash().equals(hash))
                 return b;
         }
+        //TODO - IF NULL, CHECK PROPOSED NOTARIZED CHAIN
         return null;
     }
 
@@ -70,12 +68,11 @@ public class Blockchain {
         while(!current.getHash().equals("0")) {
             chain.add(current);
             current = getBlock(current.getPrevHash());
-            if(current == null) {
-                //TODO - look at received parent list
-            }
         }
         chain.add(current);
-        return chain.reversed();
+        List<Block> reversed = new ArrayList<>(chain);
+        Collections.reverse(reversed);
+        return reversed;
     }
 
     // returns the previous unconfirmed transactions, as in, the transactions from non-final blocks

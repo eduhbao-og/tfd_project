@@ -70,15 +70,19 @@ public class StreamletProtocol {
         System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
         System.out.println("---------------------------------------------");
         System.out.println(blockchain);
+
         if (leader_id == node_id) {
             Block previous_block = blockchain.getBestChainBlock();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
             transactions.addAll(tg.getTransactions(2));
             Block proposed = Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions);
             proposed_blocks.put(proposed, 1);
-            List<Block> notarized_parent_chain = blockchain.getLongestNotarizedChain();
-            notarized_parent_chain.add(proposed);
-            URB_broadcast(new Message(Utils.MessageType.PROPOSE, notarized_parent_chain, node_id));
+
+            Object[] content = new Object[2];
+            content[0] = proposed;
+            content[1] = blockchain.getLongestNotarizedChain();
+            URB_broadcast(new Message(Utils.MessageType.PROPOSE, content, node_id));
+            System.out.println("SENT");
         }
     }
 
@@ -91,11 +95,13 @@ public class StreamletProtocol {
         if (!byzantine || (epoch < confusion_start || epoch >= confusion_start + confusion_duration)) {
             switch (m.getType()) {
                 case PROPOSE -> {
-                    // logic for deciding if the proposed block is voted or not
-                    List<Block> proposed_notarized_chain = (List<Block>) m.getContent();
-                    Block proposed = proposed_notarized_chain.removeLast();
+                    // extracting contents from message
+                    Block proposed = (Block) m.getContent()[0];
+                    List<Block> proposed_notarized_chain = (List<Block>) m.getContent()[1];
                     blockchain.setProposedNotarizedChain(proposed_notarized_chain);
                     List<Block> longestChain = blockchain.getLongestNotarizedChain();
+
+                    // logic for deciding if the proposed block is voted or not
                     if (longestChain.getLast().getHash().equals(proposed.getPrevHash())) {
                         Block block = getBlock(proposed);
                         if (proposed_blocks.containsKey(block)) {
@@ -104,15 +110,18 @@ public class StreamletProtocol {
                             proposed_blocks.put(block, 2);
                         }
                         notarize(block);
-                        URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(Utils.BlockStatus.PROPOSED,
+
+                        Object[] content = new Object[1];
+                        content[0] = Block.createBlock(Utils.BlockStatus.PROPOSED,
                                 block.getPrevHash(), block.getHash(),
                                 block.getEpoch(), longestChain.getLast().getLength() + 1,
-                                new ArrayList<>()), node_id));
+                                new ArrayList<>());
+                        URB_broadcast(new Message(Utils.MessageType.VOTE, content, node_id));
                     }
                 }
                 case VOTE -> {
                     // add to vote counter to notarize block
-                    Block proposed = (Block) m.getContent();
+                    Block proposed = (Block) m.getContent()[0];
                     Block block = getBlock(proposed);
                     if (proposed_blocks.containsKey(block)) {
                         proposed_blocks.put(block, proposed_blocks.get(block) + 1);

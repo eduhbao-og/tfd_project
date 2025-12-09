@@ -3,31 +3,11 @@ import java.util.List;
 
 public class Message implements Serializable {
     private Utils.MessageType type;
-    private Object content;
+    private Object[] content;
     private int sender;
 
-    public Message(Utils.MessageType type, Object content, int sender) {
+    public Message(Utils.MessageType type, Object[] content, int sender) {
         this.type = type;
-        switch (type) {
-            case PROPOSE -> {
-                if (!(content instanceof List<?>)) {
-                    throw new IllegalArgumentException("For a PROPOSE-type message, the content must be a List<Block>.");
-                }
-            }
-            case VOTE -> {
-                if (!(content instanceof Block)) {
-                    throw new IllegalArgumentException("For a VOTE-type message, the content must be a Block.");
-                }
-                if (!((Block) content).getTransactions().isEmpty()) {
-                    throw new IllegalArgumentException("For a VOTE-type message, the Block's transactions field must be null.");
-                }
-            }
-            case ECHO -> {
-                if (!(content instanceof Message)) {
-                    throw new IllegalArgumentException("For a VOTE-type message, the content must be a Message.");
-                }
-            }
-        }
         this.content = content;
         this.sender = sender;
     }
@@ -36,7 +16,7 @@ public class Message implements Serializable {
         return type;
     }
 
-    public Object getContent() {
+    public Object[] getContent() {
         return content;
     }
 
