@@ -86,16 +86,6 @@ public class Blockchain {
         this.proposed_notarized_chain = Utils.deepCopy(proposed_notarized_chain);
     }
 
-    public Block getLastBlock() {
-        Block last = chain.getFirst();
-        for(Block b : chain) {
-            if (last.getEpoch() < b.getEpoch()) {
-                last = b;
-            }
-        }
-        return last;
-    }
-
     @Override
     public String toString() {
         String res = ">>>> CHAIN >>>>";

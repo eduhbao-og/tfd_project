@@ -164,7 +164,7 @@ public class StreamletProtocol {
             //check for finalization
             List<Block> chain = blockchain.getBlockChain(b);
             int past_epoch = 0;
-            int count = 0;
+            int count = 1;
             for (Block block1 : chain) {
                 if (count == 3) {
                     for (Block block2 : chain) {
@@ -179,7 +179,7 @@ public class StreamletProtocol {
                     if (block1.getEpoch() - past_epoch == 1) {
                         count++;
                     } else {
-                        count = 0;
+                        count = 1;
                     }
                 }
                 past_epoch = block1.getEpoch();
