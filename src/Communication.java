@@ -36,11 +36,6 @@ public class Communication {
 
         new ServerThread().start();
 
-        Date date = new Date(startTime);
-        System.out.println("[START TIME]");
-        SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy | hh:mm:ss:SSSS");
-        String dateText = df2.format(date);
-        System.out.println(dateText);
         startTask = ses.schedule(() -> urb.start(), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 
         for (int i = 0; i < nodeId - 1; i++) {
@@ -95,6 +90,7 @@ public class Communication {
                     throw new RuntimeException(e);
                 }
 
+                outputs.add(out);
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
@@ -125,6 +121,7 @@ public class Communication {
                     throw new RuntimeException(e);
                 }
 
+                outputs.add(out);
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
@@ -151,16 +148,10 @@ public class Communication {
         while (true) {
             Object obj = in.readObject();
             if (obj instanceof Message) {
-
                 // logic to sync the start time with other nodes
                 if (((Message) obj).getType() == Utils.MessageType.SYNC) {
                     long otherTime = (long)((Message) obj).getContent()[0];
                     if (Math.max(otherTime, startTime) != startTime) {
-                        Date date = new Date(otherTime);
-                        SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy | hh:mm:ss:SSSS");
-                        String dateText = df2.format(date);
-                        System.out.println(dateText);
-
                         startTime = otherTime;
                         startTask.cancel(true);
                         startTask = ses.schedule(() -> urb.start(), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
