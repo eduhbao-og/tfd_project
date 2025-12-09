@@ -166,18 +166,18 @@ public class StreamletProtocol {
             int past_epoch = 0;
             int count = 1;
             for (Block block1 : chain) {
-                if (count == 3) {
-                    for (Block block2 : chain) {
-                        if (block2.getStatus() != Utils.BlockStatus.FINALIZED && !block2.equals(b)){
-                            block2.setStatus(Utils.BlockStatus.FINALIZED);
-                        }
-                    }
-                    b.removeTransactions(blockchain.getBlock(b.getPrevHash()).getTransactions());
-                    break;
-                }
                 if (!block1.getHash().equals("0")) {
                     if (block1.getEpoch() - past_epoch == 1) {
                         count++;
+                        if (count == 3) {
+                            for (Block block2 : chain) {
+                                if (block2.getStatus() != Utils.BlockStatus.FINALIZED && !block2.equals(b)){
+                                    block2.setStatus(Utils.BlockStatus.FINALIZED);
+                                }
+                            }
+                            b.removeTransactions(blockchain.getBlock(b.getPrevHash()).getTransactions());
+                            break;
+                        }
                     } else {
                         count = 1;
                     }
