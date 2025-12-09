@@ -99,6 +99,7 @@ public class Blockchain {
     @Override
     public String toString() {
         String res = ">>>> CHAIN >>>>";
+        chain.sort(Comparator.comparingInt(Block::getEpoch));
         for(Block b: chain){
             res += "\n-> " + b;
         }
