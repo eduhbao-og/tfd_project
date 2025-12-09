@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -17,19 +16,6 @@ public class Blockchain {
         chain.add(b);
     }
 
-    public Block getBestChainBlock() {
-        Block bestBlock = chain.getLast();
-        int numNotarized = 0;
-        for (Block b : chain.reversed()) {
-            int count = numberOfNotarized(getBlockChain(b));
-            if (count > numNotarized) {
-                numNotarized = count;
-                bestBlock = b;
-            }
-        }
-        return bestBlock;
-    }
-
     private int numberOfNotarized(List<Block> blockchain) {
         int count = 0;
         for(Block b : blockchain) {
@@ -41,6 +27,7 @@ public class Blockchain {
     }
 
     public List<Block> getLongestNotarizedChain() {
+        chain.sort(Comparator.comparingInt(Block::getEpoch));
         List<Block> longest = new ArrayList<>();
         int numNotarized = 0;
         for (Block b : chain.reversed()) {
@@ -62,7 +49,6 @@ public class Blockchain {
 
         for(Block b : proposed_notarized_chain){
             if (b.getHash().equals(hash)){
-                //b.setStatus(Utils.BlockStatus.NOTARIZED);
                 chain.add(b);
                 return b;
             }
@@ -100,10 +86,19 @@ public class Blockchain {
         this.proposed_notarized_chain = proposed_notarized_chain;
     }
 
+    public Block getLastBlock() {
+        Block last = chain.getFirst();
+        for(Block b : chain) {
+            if (last.getEpoch() < b.getEpoch()) {
+                last = b;
+            }
+        }
+        return last;
+    }
+
     @Override
     public String toString() {
         String res = ">>>> CHAIN >>>>";
-        chain.sort(Comparator.comparingInt(Block::getEpoch));
         for(Block b: chain){
             res += "\n-> " + b;
         }

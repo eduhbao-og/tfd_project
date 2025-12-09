@@ -10,7 +10,7 @@ public class StreamletProtocol {
     private int epoch_duration;
     private int epoch = 0;
     private int node_id;
-    private TransactionGenerator tg;
+    private TransactionGenerator transactionGenerator;
     private Blockchain blockchain = new Blockchain();
     private URBLayer urb;
     private int leader_id;
@@ -23,7 +23,7 @@ public class StreamletProtocol {
 
     public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean byzantine) {
         this.urb = urb;
-        tg = new TransactionGenerator(num_nodes);
+        transactionGenerator = new TransactionGenerator(num_nodes);
         this.node_id = node_id;
         this.num_nodes = num_nodes;
         initialSeed = seed;
@@ -38,6 +38,9 @@ public class StreamletProtocol {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
+//                if (epoch > 0) {
+//                    System.out.println(blockchain);
+//                }
                 compute();
             }
         };
@@ -71,18 +74,20 @@ public class StreamletProtocol {
         System.out.println("=====================================================================================");
         System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
         System.out.println("---------------------------------------------");
-        System.out.println(blockchain);
 
         if (leader_id == node_id) {
-            Block previous_block = blockchain.getBestChainBlock();
+            List<Block> parent_chain = blockchain.getLongestNotarizedChain();
+
+            Block previous_block = parent_chain.getLast();
             List<Transaction> transactions = blockchain.getPreviousTransactions(previous_block);
-            transactions.addAll(tg.getTransactions(2));
+            transactions.addAll(transactionGenerator.getTransactions(2));
             Block proposed = Block.createNewBlock(previous_block.getHash(), epoch, previous_block.getLength() + 1, transactions);
             proposed_blocks.put(proposed, 1);
 
             Object[] content = new Object[2];
             content[0] = proposed;
-            content[1] = blockchain.getLongestNotarizedChain();
+            content[1] = parent_chain;
+
             URB_broadcast(new Message(Utils.MessageType.PROPOSE, content, node_id));
         }
     }
@@ -98,9 +103,6 @@ public class StreamletProtocol {
                 case PROPOSE -> {
                     // extracting contents from message
                     Block proposed = (Block) m.getContent()[0];
-                    System.out.println("--------------------------------------");
-                    System.out.println("CHECKING FOR BALL CANCER:" + proposed);
-                    System.out.println("--------------------------------------");
                     List<Block> proposed_notarized_chain = (List<Block>) m.getContent()[1];
                     blockchain.setProposedNotarizedChain(proposed_notarized_chain);
                     List<Block> longestChain = blockchain.getLongestNotarizedChain();
@@ -135,8 +137,6 @@ public class StreamletProtocol {
                     notarize(block);
                 }
             }
-        } else {
-
         }
     }
 
