@@ -16,14 +16,18 @@ public class StreamletProtocol {
     private int leader_id;
     private long seed;
     private ConcurrentHashMap<Block, Integer> proposed_blocks = new ConcurrentHashMap<>();
+    private boolean byzantine;
+    private int confusion_start = 1;
+    private int confusion_duration = 2;
 
-    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb) {
+    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean byzantine) {
         this.urb = urb;
         tg = new TransactionGenerator(num_nodes);
         this.node_id = node_id;
         this.num_nodes = num_nodes;
         this.seed = seed;
         epoch_duration = 2 * duration;
+        this.byzantine = byzantine;
         urb.setStreamlet(this);
     }
 
@@ -55,8 +59,14 @@ public class StreamletProtocol {
     private void compute() {
         epoch++;
         proposed_blocks = new ConcurrentHashMap<>();
-        selectLeader();
-        System.out.println("=============================================");
+
+        if (byzantine && !(epoch < confusion_start || epoch >= confusion_start + confusion_duration)) {
+            leader_id = epoch % num_nodes;
+        } else {
+            selectLeader();
+        }
+
+        System.out.println("=====================================================================================");
         System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
         System.out.println("---------------------------------------------");
         System.out.println(blockchain);
@@ -75,36 +85,40 @@ public class StreamletProtocol {
     }
 
     public synchronized void URB_deliver(Message m) {
-        switch (m.getType()) {
-            case PROPOSE -> {
-                // logic for deciding if the proposed block is voted or not
-                Block proposed = (Block) m.getContent();
-                List<Block> longestChain = blockchain.getLongestNotarizedChain();
-                if (longestChain.getLast().getHash().equals(proposed.getPrevHash())) {
+        if (!byzantine || (epoch < confusion_start || epoch >= confusion_start + confusion_duration)) {
+            switch (m.getType()) {
+                case PROPOSE -> {
+                    // logic for deciding if the proposed block is voted or not
+                    Block proposed = (Block) m.getContent();
+                    List<Block> longestChain = blockchain.getLongestNotarizedChain();
+                    if (longestChain.getLast().getHash().equals(proposed.getPrevHash())) {
+                        Block block = getBlock(proposed);
+                        if (proposed_blocks.containsKey(block)) {
+                            proposed_blocks.put(block, proposed_blocks.get(block) + 1);
+                        } else {
+                            proposed_blocks.put(block, 2);
+                        }
+                        notarize(block);
+                        URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(Utils.BlockStatus.PROPOSED,
+                                block.getPrevHash(), block.getHash(),
+                                block.getEpoch(), longestChain.getLast().getLength() + 1,
+                                new ArrayList<>()), node_id));
+                    }
+                }
+                case VOTE -> {
+                    // add to vote counter to notarize block
+                    Block proposed = (Block) m.getContent();
                     Block block = getBlock(proposed);
                     if (proposed_blocks.containsKey(block)) {
                         proposed_blocks.put(block, proposed_blocks.get(block) + 1);
                     } else {
-                        proposed_blocks.put(block, 2);
+                        proposed_blocks.put(block, 1);
                     }
                     notarize(block);
-                    URB_broadcast(new Message(Utils.MessageType.VOTE, Block.createBlock(Utils.BlockStatus.PROPOSED,
-                            block.getPrevHash(), block.getHash(),
-                            block.getEpoch(), longestChain.getLast().getLength() + 1,
-                            new ArrayList<>()), node_id));
                 }
             }
-            case VOTE -> {
-                // add to vote counter to notarize block
-                Block proposed = (Block) m.getContent();
-                Block block = getBlock(proposed);
-                if (proposed_blocks.containsKey(block)) {
-                    proposed_blocks.put(block, proposed_blocks.get(block) + 1);
-                } else {
-                    proposed_blocks.put(block, 1);
-                }
-                notarize(block);
-            }
+        } else {
+
         }
     }
 

@@ -66,6 +66,9 @@ public class Blockchain {
         while(!current.getHash().equals("0")) {
             chain.add(current);
             current = getBlock(current.getPrevHash());
+            if(current == null) {
+                //TODO - look at received parent list
+            }
         }
         chain.add(current);
         return chain.reversed();

@@ -44,7 +44,7 @@ public class Main {
                 byzantine = args[2].equals("true");
 
             URBLayer urb = new URBLayer();
-            new StreamletProtocol(nodes, 3, nodeId, 1L, urb);
+            new StreamletProtocol(nodes, 3, nodeId, 1L, urb, byzantine);
             new Communication(nodeId, ips, serverPort, clientPorts, urb);
 
         } catch (FileNotFoundException e) {
