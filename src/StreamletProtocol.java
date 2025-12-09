@@ -19,12 +19,14 @@ public class StreamletProtocol {
     private boolean byzantine;
     private int confusion_start = 1;
     private int confusion_duration = 2;
+    private final long initialSeed;
 
     public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean byzantine) {
         this.urb = urb;
         tg = new TransactionGenerator(num_nodes);
         this.node_id = node_id;
         this.num_nodes = num_nodes;
+        initialSeed = seed;
         this.seed = seed;
         epoch_duration = 2 * duration;
         this.byzantine = byzantine;
@@ -50,7 +52,7 @@ public class StreamletProtocol {
             int hashInt = ByteBuffer.wrap(hashBytes).getInt();
             hashInt = Math.abs(hashInt);
             leader_id = hashInt % num_nodes + 1;
-            seed++;
+            seed = initialSeed + epoch;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -82,7 +84,6 @@ public class StreamletProtocol {
             content[0] = proposed;
             content[1] = blockchain.getLongestNotarizedChain();
             URB_broadcast(new Message(Utils.MessageType.PROPOSE, content, node_id));
-            System.out.println("SENT");
         }
     }
 

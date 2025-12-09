@@ -58,7 +58,16 @@ public class Blockchain {
             if (b.getHash().equals(hash))
                 return b;
         }
-        //TODO - IF NULL, CHECK PROPOSED NOTARIZED CHAIN
+
+        for(Block b : proposed_notarized_chain){
+            if (b.getHash().equals(hash)){
+
+                //b.setStatus(Utils.BlockStatus.NOTARIZED);
+                chain.add(b);
+                return b;
+            }
+        }
+
         return null;
     }
 
