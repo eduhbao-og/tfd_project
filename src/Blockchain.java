@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -61,7 +62,6 @@ public class Blockchain {
 
         for(Block b : proposed_notarized_chain){
             if (b.getHash().equals(hash)){
-
                 //b.setStatus(Utils.BlockStatus.NOTARIZED);
                 chain.add(b);
                 return b;
@@ -79,9 +79,8 @@ public class Blockchain {
             current = getBlock(current.getPrevHash());
         }
         chain.add(current);
-        List<Block> reversed = new ArrayList<>(chain);
-        Collections.reverse(reversed);
-        return reversed;
+        chain.sort(Comparator.comparingInt(Block::getEpoch));
+        return chain;
     }
 
     // returns the previous unconfirmed transactions, as in, the transactions from non-final blocks
@@ -104,6 +103,7 @@ public class Blockchain {
     @Override
     public String toString() {
         String res = ">>>> CHAIN >>>>";
+        chain.sort(Comparator.comparingInt(Block::getEpoch));
         for(Block b: chain){
             res += "\n-> " + b;
         }

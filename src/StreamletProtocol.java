@@ -98,6 +98,9 @@ public class StreamletProtocol {
                 case PROPOSE -> {
                     // extracting contents from message
                     Block proposed = (Block) m.getContent()[0];
+                    System.out.println("--------------------------------------");
+                    System.out.println("CHECKING FOR BALL CANCER:" + proposed);
+                    System.out.println("--------------------------------------");
                     List<Block> proposed_notarized_chain = (List<Block>) m.getContent()[1];
                     blockchain.setProposedNotarizedChain(proposed_notarized_chain);
                     List<Block> longestChain = blockchain.getLongestNotarizedChain();
@@ -158,8 +161,9 @@ public class StreamletProtocol {
             for (Block block1 : chain) {
                 if (count == 3) {
                     for (Block block2 : chain) {
-                        if (block2.getStatus() != Utils.BlockStatus.FINALIZED && !block2.equals(b))
+                        if (block2.getStatus() != Utils.BlockStatus.FINALIZED && !block2.equals(b)){
                             block2.setStatus(Utils.BlockStatus.FINALIZED);
+                        }
                     }
                     b.removeTransactions(blockchain.getBlock(b.getPrevHash()).getTransactions());
                     break;
