@@ -4,8 +4,14 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Communication {
 
@@ -13,12 +19,12 @@ public class Communication {
     private List<ObjectOutputStream> outputs;
     private URBLayer urb;
     private int nodeId;
-    private int nodes;
-    private int readyConnections = 0;
+    private long startTime = 10000 + System.currentTimeMillis();
+    private ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> startTask;
 
     public Communication(int nodeId, List<InetAddress> ips, int serverPort, List<Integer> clientPorts, URBLayer urb) {
         this.nodeId = nodeId;
-        this.nodes = ips.size();
         this.urb = urb;
         this.outputs = new ArrayList<>();
 
@@ -30,6 +36,13 @@ public class Communication {
 
         new ServerThread().start();
 
+        Date date = new Date(startTime);
+        System.out.println("[START TIME]");
+        SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy | hh:mm:ss:SSSS");
+        String dateText = df2.format(date);
+        System.out.println(dateText);
+        startTask = ses.schedule(() -> urb.start(), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+
         for (int i = 0; i < nodeId - 1; i++) {
             while (true) {
                 try {
@@ -38,7 +51,7 @@ public class Communication {
                     break;
                 } catch (IOException e) {
                     try {
-                        Thread.sleep(200); // retry after a short delay
+                        Thread.sleep(200);
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -60,15 +73,6 @@ public class Communication {
         }
     }
 
-    private synchronized void connectionReady(ObjectOutputStream out) {
-        outputs.add(out);
-        readyConnections++;
-
-        if (readyConnections == nodes) {
-            urb.start();
-        }
-    }
-
     private class OutgoingConnection extends Thread {
         private Socket socket;
 
@@ -83,7 +87,14 @@ public class Communication {
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
-                connectionReady(out);
+                // send sync message
+                try {
+                    out.writeObject(new Message(Utils.MessageType.SYNC, new Object[]{startTime}, nodeId));
+                    out.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
@@ -106,7 +117,14 @@ public class Communication {
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 out.flush();
 
-                connectionReady(out);
+                // send sync message
+                try {
+                    out.writeObject(new Message(Utils.MessageType.SYNC, new Object[]{startTime}, nodeId));
+                    out.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
@@ -133,7 +151,23 @@ public class Communication {
         while (true) {
             Object obj = in.readObject();
             if (obj instanceof Message) {
-                urb.deliver((Message) obj);
+
+                // logic to sync the start time with other nodes
+                if (((Message) obj).getType() == Utils.MessageType.SYNC) {
+                    long otherTime = (long)((Message) obj).getContent()[0];
+                    if (Math.max(otherTime, startTime) != startTime) {
+                        Date date = new Date(otherTime);
+                        SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy | hh:mm:ss:SSSS");
+                        String dateText = df2.format(date);
+                        System.out.println(dateText);
+
+                        startTime = otherTime;
+                        startTask.cancel(true);
+                        startTask = ses.schedule(() -> urb.start(), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                    }
+                } else {
+                    urb.deliver((Message) obj);
+                }
             }
         }
     }

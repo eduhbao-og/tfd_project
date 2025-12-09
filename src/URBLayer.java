@@ -8,7 +8,7 @@ public class URBLayer {
     private List<Message> messages;
 
     public URBLayer() {
-        messages = new ArrayList<Message>();
+        messages = new ArrayList<>();
     }
 
     public void setCommunication(Communication communication) {

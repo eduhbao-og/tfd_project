@@ -3,7 +3,7 @@ import java.util.List;
 
 public class Utils {
 
-    public enum MessageType {PROPOSE, VOTE, ECHO}
+    public enum MessageType {PROPOSE, VOTE, ECHO, SYNC}
     public enum BlockStatus {PROPOSED, NOTARIZED, FINALIZED}
 
     @SuppressWarnings("unchecked")
