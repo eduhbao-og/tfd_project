@@ -96,7 +96,23 @@ public class Communication {
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
+                outputs.remove(out);
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
                 System.err.println(">>> Outgoing node connection ended <<<");
+                while(true) {
+                    try {
+                        Thread.sleep(500);
+                        InetAddress addr = socket.getInetAddress();
+                        int port = socket.getPort();
+
+                        new OutgoingConnection(new Socket(addr, port)).start();
+                        break;
+                    } catch (InterruptedException | IOException ignored) {}
+                }
             }
         }
     }
@@ -131,8 +147,8 @@ public class Communication {
                 System.err.println(">>> Incoming node connection ended <<<");
             } finally {
                 try {
-                    socket.close();
                     outputs.remove(out);
+                    socket.close();
                 } catch (IOException e) {
                     System.err.println(">>> Failed to close socket <<<");
                 }
