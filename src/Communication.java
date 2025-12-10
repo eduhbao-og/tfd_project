@@ -106,7 +106,7 @@ public class Communication {
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                System.err.println(">>> Outgoing node connection ended <<<");
+                System.err.println(Utils.ANSI_RED + ">>> Outgoing node connection ended <<<" + Utils.ANSI_RESET);
                 while (true) {
                     try {
                         Thread.sleep(500);
@@ -149,13 +149,13 @@ public class Communication {
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
-                System.err.println(">>> Incoming node connection ended <<<");
+                System.err.println(Utils.ANSI_RED + ">>> Incoming node connection ended <<<" + Utils.ANSI_RESET);
             } finally {
                 try {
                     outputs.remove(out);
                     socket.close();
                 } catch (IOException e) {
-                    System.err.println(">>> Failed to close socket <<<");
+                    System.out.println(Utils.ANSI_RED + ">>> Failed to close socket <<<" + Utils.ANSI_RESET);
                 }
             }
         }

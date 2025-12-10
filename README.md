@@ -8,39 +8,56 @@
 
 ## Instructions
 
-1. Compile the project using javac
-2. Create an input file with this structure:
+NOTE - a field is represented by "<[name of field]>", when creating the file, do not type either '<', '>' and the field name, just the value.
+
+1. Compile the project using javac. For example, when on the "src/" directory: "javac -d ./compiled *.java".
+2. Create a text file with this structure:
 
 
-    number of nodes
-    node 1 ip:node 1 port
-    node 2 ip:node 2 port
+    <number of nodes>
+    <node 1 IP address>:<node 1 port>
+    <node 2 IP address>:<node 2 port>
     .
     .
     .
-    [OPTIONAL] confusion start (default 0)
-    [OPTIONAL] confusion duration (default 0)
-2. Run the program in "number of nodes" different terminals with the following arguments: node id, file name, [OPTIONAL] crash (boolean - false by default) for each node:
-3. Below is an example of how to run the program with 5 nodes using the provided input file, with node 3 crashing:
-- Node 1: 1 test/input.txt
-- Node 2: 2 test/input.txt
-- Node 3: 3 test/input.txt true
-- Node 4: 4 test/input.txt
-- Node 5: 5 test/input.txt
-4. Another way of simulating a crash is by running the nodes without passing true for the crash boolean, and just crashing and rerunning one of the nodes, the input for that would look like this:
-- Node 1: 1 test/input.txt 
-- Node 2: 2 test/input.txt
-- Node 3: 3 test/input.txt
-- Node 4: 4 test/input.txt
-- Node 5: 5 test/input.txt 
+    <node n IP address>:<node n port>
+    [OPTIONAL] <confusion start> (default 0)
+    [OPTIONAL] <confusion duration> (default 0)
+
+2. Open a number of different terminals corresponding with the total number of nodes input in the file. 
+3. Run the program in each terminal with the following arguments: node ID, input file path, and [OPTIONAL] true (for causing a fork)/false (for correct behaviour). If ommited, the default value for the last field is false. 
+Below is an example of how to run the program with 5 nodes using the provided input file, with node 3 causing a fork:
+- Node 1: java compiled/Main 1 path/to/input_file.txt
+- Node 2: java compiled/Main 2 path/to/input_file.txt
+- Node 3: java compiled/Main 3 path/to/input_file.txt true
+- Node 4: java compiled/Main 4 path/to/input_file.txt
+- Node 5: java compiled/Main 5 path/to/input_file.txt 
+
+Another way of simulating a crash is by running the nodes without passing "true" for a node to cause forking, and just manually killing and rerunning one of the terminals.
 
 ## Limitations
 
-- It's not possible to add or remove nodes while the program is running;
+- It's not possible to alter the group size while the program is running;
 - The number of nodes must be passed as an argument;
 - The program does not tolerate byzantine failures;
+- The program tolerates up to n/2 crash faults.
 
-## Print Color Tabel
+## Print Color Table
+
+The blockchain for each epoch is composed of blocks that belong to a certain epoch. The print may look like the following:
+
+=====================================================================================
+EPOCH - 1 | LEADER - 5 | TIMESTAMP - 20:50:03 \
+\>>>> CHAIN >>>> 0 --> 1
+=====================================================================================
+EPOCH - 2 | LEADER - 4 | TIMESTAMP - 20:50:09 \
+\>>>> CHAIN >>>> 0 --> 1 --> 2
+=====================================================================================
+EPOCH - 3 | LEADER - 5 | TIMESTAMP - 20:50:15 \
+\>>>> CHAIN >>>> 0 --> 1 --> 2 --> 3
+=====================================================================================
+
+Where each number represents a block of said epoch. Each epoch number is highlighted by a specific color, each with the following meaning:
 
 - red - proposed block
 - yellow - notarized block
