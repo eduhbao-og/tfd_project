@@ -39,3 +39,9 @@
 - It's not possible to add or remove nodes while the program is running;
 - The number of nodes must be passed as an argument;
 - The program does not tolerate byzantine failures;
+
+## Print Color Tabel
+
+- red - proposed block
+- yellow - notarized block
+- green - finalized block
