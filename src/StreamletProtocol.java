@@ -35,7 +35,8 @@ public class StreamletProtocol {
         urb.setStreamlet(this);
     }
 
-    public void start(){
+    public void start(int ep){
+        this.epoch = ep;
         Timer timer = new Timer(true);
         TimerTask task = new TimerTask() {
             @Override
@@ -192,4 +193,13 @@ public class StreamletProtocol {
     public int getNode_id() {
         return node_id;
     }
+
+    public int getEpoch() {
+        return epoch;
+    }
+
+    public int getEpoch_duration() {
+        return epoch_duration;
+    }
+
 }

@@ -23,6 +23,7 @@ public class Communication {
     private long startTime = 10000 + System.currentTimeMillis();
     private ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> startTask;
+    private boolean running = false;
 
     public Communication(int nodeId, List<InetAddress> ips, int serverPort, List<Integer> clientPorts, URBLayer urb) {
         this.nodeId = nodeId;
@@ -37,7 +38,7 @@ public class Communication {
 
         new ServerThread().start();
 
-        startTask = ses.schedule(() -> urb.start(), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        startTask = ses.schedule(() -> urb.start(0), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 
         for (int i = 0; i < nodeId - 1; i++) {
             while (true) {
@@ -103,7 +104,7 @@ public class Communication {
                     throw new RuntimeException(ex);
                 }
                 System.err.println(">>> Outgoing node connection ended <<<");
-                while(true) {
+                while (true) {
                     try {
                         Thread.sleep(500);
                         InetAddress addr = socket.getInetAddress();
@@ -111,7 +112,8 @@ public class Communication {
 
                         new OutgoingConnection(new Socket(addr, port)).start();
                         break;
-                    } catch (InterruptedException | IOException ignored) {}
+                    } catch (InterruptedException | IOException ignored) {
+                    }
                 }
             }
         }
@@ -174,16 +176,46 @@ public class Communication {
         while (true) {
             Object obj = in.readObject();
             if (obj instanceof Message) {
-                // logic to sync the start time with other nodes
-                if (((Message) obj).getType() == Utils.MessageType.SYNC) {
-                    long otherTime = (long)((Message) obj).getContent()[0];
-                    if (Math.max(otherTime, startTime) != startTime) {
-                        startTime = otherTime;
-                        startTask.cancel(true);
-                        startTask = ses.schedule(() -> urb.start(), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                switch (((Message) obj).getType()){
+                    // logic to sync the start time with other nodes
+                    case Utils.MessageType.SYNC -> {
+                        long otherTime = (long) ((Message) obj).getContent()[0];
+                        if (running) {
+                            System.out.println("SENDING RECONNECTION INFORMATION");
+                            System.out.println("START TIME: " + ((Message) obj).getContent()[0]);
+                            System.out.println("EPOCH: " + urb.getEpoch());
+                            broadcast(new Message(Utils.MessageType.RECONNECT, new Object[]{startTime, urb.getEpoch()}, nodeId));
+                        } else if (Math.max(otherTime, startTime) != startTime) {
+                            startTime = otherTime;
+                            startTask.cancel(true);
+                            startTask = ses.schedule(() -> {
+                                running = true;
+                                urb.start(0);
+                            }, startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                        }
                     }
-                } else {
-                    urb.deliver((Message) obj);
+                    // logic to reconnect with other nodes after crash
+                    case Utils.MessageType.RECONNECT -> {
+                        //ignore if running
+                        System.out.println(running);
+                        if(!running) {
+                            int epoch = (int)((Message) obj).getContent()[1];
+                            running = true;
+                            int duration = urb.getEpoch_duration();
+                            startTime = (long)((Message) obj).getContent()[0];
+                            System.out.println("RECONNECTING");
+                            System.out.println("START TIME: " + startTime);
+                            System.out.println("EPOCH: " + epoch);
+                            startTask.cancel(true);
+                            startTask = ses.schedule(() -> {
+                                urb.start(epoch);
+                            }, (startTime + (epoch*1000*duration)) - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                        }
+                    }
+                    // normal messages get urb delivered
+                    default -> {
+                        urb.deliver((Message) obj);
+                    }
                 }
             }
         }

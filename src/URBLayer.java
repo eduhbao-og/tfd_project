@@ -19,8 +19,8 @@ public class URBLayer {
         this.streamlet = streamlet;
     }
 
-    public void start(){
-        streamlet.start();
+    public void start(int epoch){
+        streamlet.start(epoch);
     }
 
     public synchronized void broadcast(Message m) {
@@ -84,5 +84,14 @@ public class URBLayer {
             messages.add(m);
             return true;
         }
+    }
+
+    public int getEpoch(){
+        return streamlet.getEpoch();
+    }
+
+
+    public int getEpoch_duration() {
+        return streamlet.getEpoch_duration();
     }
 }
