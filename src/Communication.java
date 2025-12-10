@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -70,6 +71,7 @@ public class Communication {
 
     private class OutgoingConnection extends Thread {
         private Socket socket;
+        private ObjectOutputStream out;
 
         public OutgoingConnection(Socket socket) {
             this.socket = socket;
@@ -78,7 +80,7 @@ public class Communication {
         @Override
         public void run() {
             try {
-                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out = new ObjectOutputStream(socket.getOutputStream());
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
@@ -94,13 +96,14 @@ public class Communication {
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
+                System.err.println(">>> Outgoing node connection ended <<<");
             }
         }
     }
 
     private class IncomingConnection extends Thread {
         private Socket socket;
+        private ObjectOutputStream out;
 
         public IncomingConnection(Socket socket) {
             this.socket = socket;
@@ -110,7 +113,7 @@ public class Communication {
         public void run() {
             try {
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out = new ObjectOutputStream(socket.getOutputStream());
                 out.flush();
 
                 // send sync message
@@ -125,7 +128,14 @@ public class Communication {
                 listenIncoming(in);
 
             } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
+                System.err.println(">>> Incoming node connection ended <<<");
+            } finally {
+                try {
+                    socket.close();
+                    outputs.remove(out);
+                } catch (IOException e) {
+                    System.err.println(">>> Failed to close socket <<<");
+                }
             }
         }
     }
