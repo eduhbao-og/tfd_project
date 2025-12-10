@@ -1,6 +1,7 @@
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,6 +77,7 @@ public class StreamletProtocol {
 
         System.out.println("=====================================================================================");
         System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
+        System.out.println((new SimpleDateFormat("HH:mm:ss")).format(new Date(System.currentTimeMillis())));
         System.out.println("---------------------------------------------");
 
         if (leader_id == node_id) {

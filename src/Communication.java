@@ -38,7 +38,10 @@ public class Communication {
 
         new ServerThread().start();
 
-        startTask = ses.schedule(() -> urb.start(0), startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        startTask = ses.schedule(() -> {
+            running = true;
+            urb.start(0);
+        }, startTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 
         for (int i = 0; i < nodeId - 1; i++) {
             while (true) {
@@ -176,7 +179,7 @@ public class Communication {
         while (true) {
             Object obj = in.readObject();
             if (obj instanceof Message) {
-                switch (((Message) obj).getType()){
+                switch (((Message) obj).getType()) {
                     // logic to sync the start time with other nodes
                     case Utils.MessageType.SYNC -> {
                         long otherTime = (long) ((Message) obj).getContent()[0];
@@ -198,18 +201,18 @@ public class Communication {
                     case Utils.MessageType.RECONNECT -> {
                         //ignore if running
                         System.out.println(running);
-                        if(!running) {
-                            int epoch = (int)((Message) obj).getContent()[1];
+                        if (!running) {
+                            int epoch = (int) ((Message) obj).getContent()[1];
                             running = true;
                             int duration = urb.getEpoch_duration();
-                            startTime = (long)((Message) obj).getContent()[0];
+                            startTime = (long) ((Message) obj).getContent()[0];
                             System.out.println("RECONNECTING");
                             System.out.println("START TIME: " + startTime);
                             System.out.println("EPOCH: " + epoch);
                             startTask.cancel(true);
                             startTask = ses.schedule(() -> {
                                 urb.start(epoch);
-                            }, (startTime + (epoch*1000*duration)) - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                            }, (startTime + ((epoch) * 1000 * duration)) - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
                         }
                     }
                     // normal messages get urb delivered
