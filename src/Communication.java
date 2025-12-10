@@ -184,9 +184,6 @@ public class Communication {
                     case Utils.MessageType.SYNC -> {
                         long otherTime = (long) ((Message) obj).getContent()[0];
                         if (running) {
-                            System.out.println("SENDING RECONNECTION INFORMATION");
-                            System.out.println("START TIME: " + ((Message) obj).getContent()[0]);
-                            System.out.println("EPOCH: " + urb.getEpoch());
                             broadcast(new Message(Utils.MessageType.RECONNECT, new Object[]{startTime, urb.getEpoch()}, nodeId));
                         } else if (Math.max(otherTime, startTime) != startTime) {
                             startTime = otherTime;
@@ -199,16 +196,12 @@ public class Communication {
                     }
                     // logic to reconnect with other nodes after crash
                     case Utils.MessageType.RECONNECT -> {
-                        //ignore if running
-                        System.out.println(running);
+                        // ignore if running
                         if (!running) {
                             int epoch = (int) ((Message) obj).getContent()[1];
                             running = true;
                             int duration = urb.getEpoch_duration();
                             startTime = (long) ((Message) obj).getContent()[0];
-                            System.out.println("RECONNECTING");
-                            System.out.println("START TIME: " + startTime);
-                            System.out.println("EPOCH: " + epoch);
                             startTask.cancel(true);
                             startTask = ses.schedule(() -> {
                                 urb.start(epoch);

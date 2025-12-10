@@ -22,7 +22,7 @@ public class StreamletProtocol {
     private int confusion_duration;
     private final long initialSeed;
 
-    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean byzantine, int confusion_start, int confusion_duration) {
+    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean crashing, int confusion_start, int confusion_duration) {
         this.urb = urb;
         transactionGenerator = new TransactionGenerator(num_nodes);
         this.node_id = node_id;
@@ -30,7 +30,7 @@ public class StreamletProtocol {
         initialSeed = seed;
         this.seed = seed;
         epoch_duration = 2 * duration;
-        this.byzantine = byzantine;
+        this.byzantine = crashing;
         this.confusion_start = confusion_start;
         this.confusion_duration = confusion_duration;
         urb.setStreamlet(this);
@@ -43,6 +43,11 @@ public class StreamletProtocol {
             @Override
             public void run() {
                 if (epoch > 0) {
+                    System.out.println(Utils.ANSI_WHITE + "=====================================================================================" + Utils.ANSI_RESET);
+                    System.out.print(Utils.ANSI_BLUE + "EPOCH" + Utils.ANSI_RESET + " - " + epoch +
+                            " | " + Utils.ANSI_BLUE + "LEADER" + Utils.ANSI_RESET + " - " + leader_id +
+                            " | " + Utils.ANSI_BLUE + "TIMESTAMP" + Utils.ANSI_RESET +  " - ");
+                    System.out.println((new SimpleDateFormat("HH:mm:ss")).format(new Date(System.currentTimeMillis())));
                     System.out.println(blockchain);
                 }
                 compute();
@@ -74,11 +79,6 @@ public class StreamletProtocol {
             seed = initialSeed + epoch;
             selectLeader();
         }
-
-        System.out.println("=====================================================================================");
-        System.out.println("EPOCH: " + epoch + "; LEADER: " + leader_id);
-        System.out.println((new SimpleDateFormat("HH:mm:ss")).format(new Date(System.currentTimeMillis())));
-        System.out.println("---------------------------------------------");
 
         if (leader_id == node_id) {
             List<Block> parent_chain = blockchain.getLongestNotarizedChain();

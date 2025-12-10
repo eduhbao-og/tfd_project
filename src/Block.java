@@ -95,12 +95,14 @@ public class Block implements Serializable {
 
     @Override
     public String toString() {
-        String res = "Status:" + status + ";Epoch:" + epoch + ";Hash:" + hash + ";PrevHash:" + prev_hash + ";\nTransactions: ";
-        for(Transaction t : transactions){
-            res += t + " , ";
-        }
-        res += " | ";
-        return res;
+        String res = "";
+        if(status == Utils.BlockStatus.PROPOSED)
+            res += Utils.ANSI_RED;
+        else if (status == Utils.BlockStatus.NOTARIZED)
+            res += Utils.ANSI_YELLOW;
+        else
+            res += Utils.ANSI_GREEN;
+        return res += epoch + Utils.ANSI_RESET;
     }
 
     public boolean isEqual(Block b){

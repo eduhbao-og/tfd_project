@@ -46,14 +46,12 @@ public class Blockchain {
             if (b.getHash().equals(hash))
                 return b;
         }
-
         for(Block b : proposed_notarized_chain){
             if (b.getHash().equals(hash)){
                 chain.add(b);
                 return b;
             }
         }
-
         return null;
     }
 
@@ -88,10 +86,13 @@ public class Blockchain {
 
     @Override
     public String toString() {
-        String res = ">>>> CHAIN >>>>";
+        String res = Utils.ANSI_WHITE + ">>>> " + Utils.ANSI_RESET + "CHAIN" + Utils.ANSI_WHITE + " >>>> " + Utils.ANSI_RESET;
         chain.sort(Comparator.comparingInt(Block::getEpoch));
         for(Block b: chain){
-            res += "\n-> " + b;
+            if (b.getEpoch() == 0)
+                res += b;
+            else
+                res += " --> " + b;
         }
         return res;
     }

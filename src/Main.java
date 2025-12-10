@@ -12,12 +12,12 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            boolean byzantine = false;
+            boolean crashing = false;
             Scanner scanner = new Scanner(new File(args[1]));
 
             int nodes = Integer.parseInt(scanner.nextLine());
-            List<InetAddress> ips = new ArrayList<InetAddress>(nodes);
-            List<Integer> clientPorts = new ArrayList<Integer>(nodes);
+            List<InetAddress> ips = new ArrayList<>(nodes);
+            List<Integer> clientPorts = new ArrayList<>(nodes);
 
             String[] line ;
 
@@ -51,10 +51,10 @@ public class Main {
             scanner.close();
 
             if(args.length >= 3)
-                byzantine = args[2].equals("true");
+                crashing = args[2].equals("true");
 
             URBLayer urb = new URBLayer();
-            new StreamletProtocol(nodes, 3, nodeId, 1L, urb, byzantine, confusion_start, confusion_duration);
+            new StreamletProtocol(nodes, 3, nodeId, 1L, urb, crashing, confusion_start, confusion_duration);
             new Communication(nodeId, ips, serverPort, clientPorts, urb);
 
         } catch (FileNotFoundException e) {
