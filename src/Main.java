@@ -25,7 +25,7 @@ public class Main {
 
             int serverPort = 0;
 
-            for (int i = 1; scanner.hasNextLine(); i++) {
+            for (int i = 1; i <= nodes; i++) {
                 line = scanner.nextLine().split(":");
                 if(i == nodeId){
                     serverPort = Integer.parseInt(line[1]);
@@ -38,13 +38,23 @@ public class Main {
                     }
                 }
             }
+
+            int confusion_start = 0;
+            int confusion_duration = 0;
+
+            if(scanner.hasNextLine())
+                confusion_start = Integer.parseInt(scanner.nextLine());
+
+            if(scanner.hasNextLine())
+                confusion_duration = Integer.parseInt(scanner.nextLine());
+
             scanner.close();
 
             if(args.length >= 3)
                 byzantine = args[2].equals("true");
 
             URBLayer urb = new URBLayer();
-            new StreamletProtocol(nodes, 3, nodeId, 1L, urb, byzantine);
+            new StreamletProtocol(nodes, 3, nodeId, 1L, urb, byzantine, confusion_start, confusion_duration);
             new Communication(nodeId, ips, serverPort, clientPorts, urb);
 
         } catch (FileNotFoundException e) {

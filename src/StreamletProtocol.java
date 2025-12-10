@@ -17,11 +17,11 @@ public class StreamletProtocol {
     private long seed;
     private ConcurrentHashMap<Block, Integer> proposed_blocks = new ConcurrentHashMap<>();
     private boolean byzantine;
-    private int confusion_start = 1;
-    private int confusion_duration = 2;
+    private int confusion_start;
+    private int confusion_duration;
     private final long initialSeed;
 
-    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean byzantine) {
+    public StreamletProtocol(int num_nodes, int duration, int node_id, long seed, URBLayer urb, boolean byzantine, int confusion_start, int confusion_duration) {
         this.urb = urb;
         transactionGenerator = new TransactionGenerator(num_nodes);
         this.node_id = node_id;
@@ -30,6 +30,8 @@ public class StreamletProtocol {
         this.seed = seed;
         epoch_duration = 2 * duration;
         this.byzantine = byzantine;
+        this.confusion_start = confusion_start;
+        this.confusion_duration = confusion_duration;
         urb.setStreamlet(this);
     }
 
