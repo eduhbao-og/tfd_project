@@ -198,8 +198,9 @@ public class Communication {
                     case Utils.MessageType.RECONNECT -> {
                         // ignore if running
                         if (!running) {
-                            int epoch = (int) ((Message) obj).getContent()[1];
                             running = true;
+                            System.out.println(Utils.ANSI_BLUE + "Reconnecting..." + Utils.ANSI_RESET);
+                            int epoch = (int) ((Message) obj).getContent()[1];
                             int duration = urb.getEpoch_duration();
                             startTime = (long) ((Message) obj).getContent()[0];
                             startTask.cancel(true);
