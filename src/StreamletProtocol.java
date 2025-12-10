@@ -59,7 +59,6 @@ public class StreamletProtocol {
             int hashInt = ByteBuffer.wrap(hashBytes).getInt();
             hashInt = Math.abs(hashInt);
             leader_id = hashInt % num_nodes + 1;
-            seed = initialSeed + epoch;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -72,6 +71,7 @@ public class StreamletProtocol {
         if (byzantine && !(epoch < confusion_start || epoch >= confusion_start + confusion_duration)) {
             leader_id = epoch % num_nodes;
         } else {
+            seed = initialSeed + epoch;
             selectLeader();
         }
 
